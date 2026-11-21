@@ -1,0 +1,53 @@
+{
+ "target": "parked_hours > 12 after a customer ride end",
+ "city": "BER",
+ "train": "Berlin 2024-06-03..2024-06-22 (June 24-30 excluded: collection gap)",
+ "features": [
+  "cell_starts_hist",
+  "cell_median_idle_hist",
+  "dist_center_km",
+  "hour",
+  "dow",
+  "ch1",
+  "end_dist",
+  "end_offstreet",
+  "area_code",
+  "size_code",
+  "electric",
+  "prior_damage",
+  "inside_sbahn_ring"
+ ],
+ "areas": [
+  "bus_lane",
+  "legal",
+  "loading_zone",
+  "no_legal_parking_nearby",
+  "no_legal_parking_nearby_outer",
+  "no_stopping",
+  "taxi_stand"
+ ],
+ "sizes": [
+  "L",
+  "M",
+  "P",
+  "S",
+  "X"
+ ],
+ "cell_deg": [
+  0.0036,
+  0.0059
+ ],
+ "cell_key": "round(lat/0.0036)_round(lon/0.0059)",
+ "cell_starts_hist_unit": "ride ends in cell per 14 days",
+ "center": [
+  52.5163,
+  13.3777
+ ],
+ "validation": {
+  "auc": 0.832,
+  "base_rate": 0.171,
+  "precision_top10pct": 0.585
+ },
+ "alert_threshold_top10pct": 0.472,
+ "sklearn": "1.7.2"
+}

@@ -1,0 +1,55 @@
+# --- secrets / credentials (never commit) ---
+.env
+.env.*
+*.env
+.tabpfn_token
+*.token
+*token*.txt
+*secret*
+*credential*
+*.pem
+*.key
+id_rsa*
+
+# --- raw / derived MILES data (not public) ---
+*.parquet
+*.duckdb
+output_full/
+**/geo/*.pkl.gz
+**/geo/*.npz
+**/geo/replay_*.json
+**/geo/demand_*.npz
+**/geo/cells_*.json
+**/data/*.db
+**/data/*.sqlite*
+
+# --- model binaries (large / rebuildable) ---
+*.joblib
+*.pkl
+*.onnx
+*.pt
+*.pth
+*.h5
+**/model/*.npz
+
+# --- python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+.pytest_cache/
+
+# --- node / frontend ---
+node_modules/
+dist/
+build/
+.cache/
+
+# --- os / editor ---
+.DS_Store
+*.swp
+*.log
+.idea/
+.vscode/

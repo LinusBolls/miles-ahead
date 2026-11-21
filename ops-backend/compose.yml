@@ -1,0 +1,23 @@
+name: miles-ops
+services:
+  api:
+    build: ./src
+    image: miles-ops:latest
+    network_mode: host          # reaches the scraper's Postgres on 127.0.0.1:55432; binds 127.0.0.1:8791 only
+    env_file: .env              # OPS_DB_DSN (read-only role ops_ro), chmod 600
+    environment:
+      REPLAY_SPEED: "5"
+    volumes:
+      - ./data:/data            # SQLite: decisions + ledger snapshots
+    mem_limit: 800m
+    memswap_limit: 800m
+    restart: unless-stopped
+    logging:
+      driver: json-file
+      options: { max-size: "20m", max-file: "3" }
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8791/health', timeout=5)"]
+      interval: 30s
+      timeout: 6s
+      retries: 3
+      start_period: 60s

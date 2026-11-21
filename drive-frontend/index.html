@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Refuel Credit Berlin</title>
+<meta name="description" content="Going somewhere anyway? Live: nearly empty MILES cars near you in Berlin. Refuel one on the way and MILES gives you €5 credit. Unofficial hackathon project.">
+<meta name="theme-color" content="#F4F7F6">
+<meta name="color-scheme" content="light">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 32 32%22%3E%3Crect width=%2232%22 height=%2232%22 rx=%228%22 fill=%22%230ECAA0%22/%3E%3Ctext x=%2216%22 y=%2223%22 font-family=%22Arial%22 font-weight=%22900%22 font-size=%2219%22 text-anchor=%22middle%22 fill=%22%230B2A24%22%3E%E2%82%AC%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://tiles.openfreemap.org" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
+<link rel="stylesheet" href="drive.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js" defer></script>
+<script src="drive.js" defer></script>
+</head>
+<body>
+<header class="top">
+  <div class="live" id="live" aria-live="polite"><i></i><span id="liveText">Connecting</span></div>
+  <div class="where">
+    <button class="chip" id="whereBtn" aria-haspopup="menu" aria-expanded="false"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5a4.8 4.8 0 0 0-4.8 4.8c0 3.4 4.8 8.2 4.8 8.2s4.8-4.8 4.8-8.2A4.8 4.8 0 0 0 8 1.5Zm0 6.6a1.8 1.8 0 1 1 0-3.6 1.8 1.8 0 0 1 0 3.6Z"/></svg><span id="whereText">CIC Berlin</span></button>
+    <div class="menu" id="whereMenu" role="menu" hidden>
+      <button role="menuitem" data-where="gps">My location</button>
+      <button role="menuitem" data-where="cic">CIC Berlin, Lohmühlenstraße</button>
+      <button role="menuitem" data-where="alex">Alexanderplatz</button>
+    </div>
+  </div>
+</header>
+
+<section class="hero">
+  <h1 class="ask">Going somewhere anyway?</h1>
+  <p class="sub">Take a nearly empty MILES and fill it up on the way. MILES pays the fuel and gives you <b>€5 credit</b> for your next ride.</p>
+  <button class="best" id="best" hidden>
+    <span class="best-lbl" id="bestLbl">Best option</span>
+    <span class="best-amt"><b id="bestAmt">€–</b> <small>cheaper</small></span>
+    <span class="best-meta" id="bestCost"></span>
+    <span class="best-meta" id="bestMeta"></span>
+    <svg class="best-go" viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5 10.5 8 6 12.5" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+  </button>
+  <p class="none" id="none" hidden></p>
+  <p class="proof" id="proof" hidden></p>
+</section>
+
+<div class="mapwrap" id="mapwrap">
+  <div id="map" role="region" aria-label="Map of nearly empty cars"></div>
+  <button class="recenter" id="recenter" aria-label="Show me and the nearest cars"><svg viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="3.2"/><path d="M10 1.5v3M10 15.5v3M1.5 10h3M15.5 10h3" stroke-width="1.8" stroke-linecap="round"/><circle cx="10" cy="10" r="6" fill="none" stroke-width="1.6"/></svg></button>
+</div>
+
+<main>
+  <div class="listhead">
+    <h2 id="listTitle">Cars nearby</h2>
+    <button class="far" id="farBtn" aria-pressed="false" hidden>Show farther</button>
+  </div>
+  <p class="ticker" id="ticker" hidden></p>
+  <ol class="list" id="list" aria-live="off"></ol>
+  <p class="empty" id="empty" hidden></p>
+  <p class="evline" id="evLine" hidden></p>
+</main>
+
+<footer class="foot">
+  <details>
+    <summary>How the numbers work</summary>
+    <div class="how">
+      <p><b>€5 for refuelling.</b> Rent at the standard km rate in the MILES app, start with the tank below 25%, and fill it to 100% at a partner station in Germany. You start refuelling in the app ("Refueling", pick the pump, "Unlock nozzle"); MILES pays the fuel. Once per car and rental; the credit arrives after the ride, is valid 90 days and is used on your next trip. MILES says parking minutes while refuelling are compensated with the bonus. Sources: <a href="https://support.miles-mobility.com/hc/en-us/articles/360015528380-When-do-I-get-a-bonus-for-refueling" rel="noopener">refuelling bonus</a>, <a href="https://support.miles-mobility.com/hc/en-us/articles/360015531299-Everything-about-refueling" rel="noopener">how refuelling works</a>.</p>
+      <p><b>How much cheaper.</b> We take the €5 credit and subtract the unlock fee and the km from the car to the pump (plus 0.3 km to park), as if the pump were a pure detour. If the pump is on your way, you'd pay those anyway and save closer to €5. Add about 10 minutes at the pump (our guess). We assume €0.98/km and €1 unlock for S and M cars, €1.29/km and €2 unlock for vans and Teslas. MILES advertises S and M from €0.79/km, so the app may be cheaper. Street distance is estimated as 1.35 times the straight line. The list is sorted by saving minus about €0.20 per walking minute. Cars that would cost more than they save are never shown.</p>
+      <p><b>€10 for charging.</b> End a ride at the km rate with the battery at 30% or lower, plugged into a MILES partner charger, after driving more than 1 km (<a href="https://support.miles-mobility.com/hc/en-us/articles/5980672773650-How-do-I-get-my-credit-for-charging" rel="noopener">source</a>). Berlin has few electric MILES left, so this is rare.</p>
+      <p><b>Partner status</b> isn't public. For fuel, Aral and TotalEnergies stations are marked likely; for charging, operators that roam on Plugsurfing. Always check the station in the MILES app before you drive.</p>
+      <p><b>Data.</b> Car positions and fuel levels come from the public MILES map, refreshed every few minutes, so a car can already be booked. "Under 25% right now" counts the fuel cars currently available to rent on that map. Stations from OpenStreetMap. Credit rules read from the MILES help center on 21 November 2026.</p>
+    </div>
+  </details>
+  <p class="did" id="didLine" hidden></p>
+  <p class="legal">Unofficial hackathon project, not affiliated with MILES Mobility GmbH.</p>
+  <p class="apps">Rider side of the same live fleet feed as <a href="/ops/">Tonight's moves</a>.</p>
+  <p class="apps">Need the app? <a href="https://apps.apple.com/de/app/miles-carsharing-vansharing/id1220185947" rel="noopener">App Store</a> or <a href="https://play.google.com/store/apps/details?id=com.driveby.app" rel="noopener">Google Play</a></p>
+</footer>
+
+<template id="cardTpl">
+  <li class="card">
+    <button class="row" aria-expanded="false">
+      <span class="badge"><b class="amt"></b><small class="what"></small></span>
+      <span class="mid">
+        <span class="title"></span>
+        <span class="lvl"><span class="bar"><i></i></span><span class="pct"></span></span>
+        <span class="trip"></span>
+      </span>
+      <span class="net"><b></b><small></small></span>
+    </button>
+    <div class="detail" hidden>
+      <ol class="steps"></ol>
+      <div class="acts">
+        <a class="btn primary open" rel="noopener">Open MILES</a>
+        <a class="btn walk" rel="noopener" target="_blank">Walk to car</a>
+      </div>
+      <p class="hint"></p>
+      <p class="math"></p>
+      <button class="didit">I did it</button>
+    </div>
+  </li>
+</template>
+</body>
+</html>

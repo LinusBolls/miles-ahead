@@ -1,0 +1,371 @@
+{
+ "features": [
+  "hour",
+  "dow",
+  "charge",
+  "discounted",
+  "damage_count",
+  "size_code",
+  "electric",
+  "model_code",
+  "dist_center_km",
+  "x_km",
+  "y_km"
+ ],
+ "categorical": [
+  "size_code",
+  "model_code"
+ ],
+ "model_vocab": {
+  "VW Polo GP 2022": 0,
+  "Audi A4 Avant": 1,
+  "VW ID.3": 2,
+  "Opel Corsa Elegance": 3,
+  "VW Polo": 4,
+  "VW Taigo": 5,
+  "Audi Q2": 6,
+  "Mercedes Sprinter": 7,
+  "Audi Q2 S line": 8,
+  "SEAT Leon": 9,
+  "Tesla Model Y": 10,
+  "VW ID.4 Pro": 11,
+  "Opel Vivaro": 12,
+  "Tesla Model 3": 13,
+  "Audi A4 S-line": 14,
+  "Ford Fiesta": 15,
+  "Cupra Born": 16,
+  "VW Crafter": 17,
+  "VW Crafter Automatic": 18,
+  "VW T6": 19,
+  "Opel Corsa GS": 20,
+  "Audi A3": 21
+ },
+ "context": {
+  "rows": 10000,
+  "range": "Berlin ride ends 2024-06-03..2024-06-16",
+  "label": "idle > 12 h",
+  "base_rate": 0.179,
+  "sample": "random_state=0 from rideends_allcities_2024-06.parquet, city == BER"
+ },
+ "metrics": {
+  "tabpfn_clean_split": {
+   "n": 80044,
+   "auc": 0.822,
+   "brier": 0.112,
+   "ece": 0.015,
+   "base_rate": 0.172,
+   "note": "context 10k ride ends June 3-16, test = replay ride ends June 17-22 (parking periods)"
+  },
+  "tabpfn_all_replay_oos": {
+   "n": 266400,
+   "auc": 0.815
+  },
+  "gbm_in_sample_replay": {
+   "auc": 0.858,
+   "note": "GBM fit on June 3-22: in-sample"
+  }
+ },
+ "metrics_carolina": {
+  "berlin_10k_auc": 0.824,
+  "brier": 0.115,
+  "ece": 0.008,
+  "gbm_210k_auc": 0.84,
+  "note": "Carolina, Prior Labs API, train June 3-16 / test June 17-23"
+ },
+ "threshold": {
+  "tabpfn": 0.4556,
+  "gbm": 0.4744,
+  "share": 0.1,
+  "precision_tabpfn": 0.562,
+  "precision_gbm": 0.636
+ },
+ "calibration": {
+  "tabpfn": [
+   {
+    "lo": 0.0,
+    "hi": 0.05,
+    "n": 30638,
+    "rate": 0.028,
+    "mean_p": 0.018
+   },
+   {
+    "lo": 0.05,
+    "hi": 0.1,
+    "n": 11624,
+    "rate": 0.088,
+    "mean_p": 0.073
+   },
+   {
+    "lo": 0.1,
+    "hi": 0.15,
+    "n": 7749,
+    "rate": 0.154,
+    "mean_p": 0.124
+   },
+   {
+    "lo": 0.15,
+    "hi": 0.2,
+    "n": 6032,
+    "rate": 0.198,
+    "mean_p": 0.174
+   },
+   {
+    "lo": 0.2,
+    "hi": 0.25,
+    "n": 4672,
+    "rate": 0.238,
+    "mean_p": 0.224
+   },
+   {
+    "lo": 0.25,
+    "hi": 0.3,
+    "n": 3776,
+    "rate": 0.285,
+    "mean_p": 0.274
+   },
+   {
+    "lo": 0.3,
+    "hi": 0.35,
+    "n": 3019,
+    "rate": 0.319,
+    "mean_p": 0.324
+   },
+   {
+    "lo": 0.35,
+    "hi": 0.4,
+    "n": 2561,
+    "rate": 0.371,
+    "mean_p": 0.374
+   },
+   {
+    "lo": 0.4,
+    "hi": 0.45,
+    "n": 2042,
+    "rate": 0.431,
+    "mean_p": 0.424
+   },
+   {
+    "lo": 0.45,
+    "hi": 0.5,
+    "n": 1712,
+    "rate": 0.463,
+    "mean_p": 0.474
+   },
+   {
+    "lo": 0.5,
+    "hi": 0.55,
+    "n": 1478,
+    "rate": 0.503,
+    "mean_p": 0.525
+   },
+   {
+    "lo": 0.55,
+    "hi": 0.6,
+    "n": 1237,
+    "rate": 0.525,
+    "mean_p": 0.575
+   },
+   {
+    "lo": 0.6,
+    "hi": 0.65,
+    "n": 1011,
+    "rate": 0.588,
+    "mean_p": 0.624
+   },
+   {
+    "lo": 0.65,
+    "hi": 0.7,
+    "n": 864,
+    "rate": 0.639,
+    "mean_p": 0.675
+   },
+   {
+    "lo": 0.7,
+    "hi": 0.8,
+    "n": 1117,
+    "rate": 0.68,
+    "mean_p": 0.744
+   },
+   {
+    "lo": 0.8,
+    "hi": 0.9,
+    "n": 408,
+    "rate": 0.787,
+    "mean_p": 0.84
+   },
+   {
+    "lo": 0.9,
+    "hi": 1.0,
+    "n": 104,
+    "rate": 0.875,
+    "mean_p": 0.922
+   }
+  ],
+  "gbm": [
+   {
+    "lo": 0.0,
+    "hi": 0.05,
+    "n": 98006,
+    "rate": 0.015,
+    "mean_p": 0.022
+   },
+   {
+    "lo": 0.05,
+    "hi": 0.1,
+    "n": 39519,
+    "rate": 0.068,
+    "mean_p": 0.073
+   },
+   {
+    "lo": 0.1,
+    "hi": 0.15,
+    "n": 26018,
+    "rate": 0.125,
+    "mean_p": 0.124
+   },
+   {
+    "lo": 0.15,
+    "hi": 0.2,
+    "n": 20309,
+    "rate": 0.177,
+    "mean_p": 0.174
+   },
+   {
+    "lo": 0.2,
+    "hi": 0.25,
+    "n": 14993,
+    "rate": 0.225,
+    "mean_p": 0.224
+   },
+   {
+    "lo": 0.25,
+    "hi": 0.3,
+    "n": 12318,
+    "rate": 0.283,
+    "mean_p": 0.274
+   },
+   {
+    "lo": 0.3,
+    "hi": 0.35,
+    "n": 9243,
+    "rate": 0.331,
+    "mean_p": 0.324
+   },
+   {
+    "lo": 0.35,
+    "hi": 0.4,
+    "n": 8448,
+    "rate": 0.374,
+    "mean_p": 0.375
+   },
+   {
+    "lo": 0.4,
+    "hi": 0.45,
+    "n": 7635,
+    "rate": 0.436,
+    "mean_p": 0.424
+   },
+   {
+    "lo": 0.45,
+    "hi": 0.5,
+    "n": 6478,
+    "rate": 0.477,
+    "mean_p": 0.474
+   },
+   {
+    "lo": 0.5,
+    "hi": 0.55,
+    "n": 5464,
+    "rate": 0.534,
+    "mean_p": 0.524
+   },
+   {
+    "lo": 0.55,
+    "hi": 0.6,
+    "n": 4673,
+    "rate": 0.59,
+    "mean_p": 0.574
+   },
+   {
+    "lo": 0.6,
+    "hi": 0.65,
+    "n": 3828,
+    "rate": 0.641,
+    "mean_p": 0.624
+   },
+   {
+    "lo": 0.65,
+    "hi": 0.7,
+    "n": 3263,
+    "rate": 0.684,
+    "mean_p": 0.674
+   },
+   {
+    "lo": 0.7,
+    "hi": 0.8,
+    "n": 4574,
+    "rate": 0.782,
+    "mean_p": 0.744
+   },
+   {
+    "lo": 0.8,
+    "hi": 0.9,
+    "n": 1508,
+    "rate": 0.899,
+    "mean_p": 0.838
+   },
+   {
+    "lo": 0.9,
+    "hi": 1.0,
+    "n": 123,
+    "rate": 0.959,
+    "mean_p": 0.911
+   }
+  ],
+  "tabpfn_basis": "out-of-sample, June 17-22 ride ends scored with the June 3-16 context",
+  "gbm_basis": "in-sample (GBM fit on June 3-22)"
+ },
+ "value": {
+  "eur_per_car_h": 1.364,
+  "h_strand": 21.71,
+  "h_no_strand": 2.87,
+  "basis": "MILES 2024 audited report: €227M revenue / ~19k cars / 8,760 h; idle hours from Berlin ride ends June 3-16 (capped at 48 h)"
+ },
+ "replay_precompute": {
+  "api_calls": [
+   {
+    "context": "ctxA",
+    "rows": 50000,
+    "s": 5.8
+   },
+   {
+    "context": "ctxA",
+    "rows": 30044,
+    "s": 4.0
+   },
+   {
+    "context": "ctxB",
+    "rows": 50000,
+    "s": 5.6
+   },
+   {
+    "context": "ctxB",
+    "rows": 50000,
+    "s": 5.7
+   },
+   {
+    "context": "ctxB",
+    "rows": 50000,
+    "s": 5.6
+   },
+   {
+    "context": "ctxB",
+    "rows": 36356,
+    "s": 4.3
+   }
+  ],
+  "n_calls": 8,
+  "credits": 73345,
+  "note": "2 fits (context uploads) + 6 predict calls; credits 90,000 -> 163,345 of 20,000,000"
+ }
+}

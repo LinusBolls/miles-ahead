@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tonight's moves</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 16 16%22%3E%3Crect x=%222%22 y=%222%22 width=%2212%22 height=%2212%22 rx=%223%22 fill=%22%230ECAA0%22/%3E%3C/svg%3E">
+<meta name="description" content="Tonight's moves for MILES Berlin: which cars the field team should move, why, where to, and what each move is worth.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..800&family=DM+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.css">
+<link rel="stylesheet" href="ops.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/maplibre-gl/4.7.1/maplibre-gl.min.js"></script>
+<link rel="modulepreload" href="api.js">
+<link rel="modulepreload" href="map.js">
+</head>
+<body>
+<div id="app">
+  <header class="top">
+    <div class="brand"><b>Tonight's moves</b><span>MILES Berlin</span></div>
+    <div class="seg" id="source" role="group" aria-label="Data source">
+      <button data-src="live" class="on" data-def="Live: Berlin ride ends from the MILES app API, scraped on our server and scored as they arrive.">Live</button>
+      <button data-src="replay" data-def="Replay: real Berlin ride ends from June 3–22 2024, played from a weekday morning, daytime only. Same screen, same models as live.">Replay</button>
+    </div>
+    <div class="seg speed" id="speed" role="group" aria-label="Replay speed" hidden data-def="Replay speed. Changes the replay clock for everyone watching.">
+      <button data-speed="1">1×</button><button data-speed="5">5×</button><button data-speed="20">20×</button>
+    </div>
+    <div id="status" class="pill"><i></i><span>Connecting</span></div>
+    <div class="spacer"></div>
+    <div class="headline" id="headline" data-def="">–</div>
+    <button class="q" id="modelQ" aria-label="How the moves are scored" aria-expanded="false" aria-controls="modelPop">?</button>
+    <div class="clock" id="clock" data-def="Berlin time. In replay this is the replay clock.">--:--</div>
+    <label class="op" data-def="Your name goes into every assignment and skip you record. Kept in this browser.">Operator <input id="operator" spellcheck="false" autocomplete="off" maxlength="32" placeholder="Your name"></label>
+  </header>
+
+  <section class="board" aria-label="Moves">
+    <div class="board-h" id="boardH"></div>
+    <div class="list" id="list" role="listbox" aria-label="Moves, grouped into runs" tabindex="-1"></div>
+    <footer class="tally" id="tally" data-def="Today's assigned moves and what happened after. Relocate: rented within 2 h of the move, or still idle. Clear: the car left before the restriction window, or it was moved without a customer ride."></footer>
+  </section>
+
+  <main class="mapwrap">
+    <div id="map"></div>
+    <div class="legend" id="legend"></div>
+    <aside class="drawer" id="drawer" hidden aria-label="Move details"></aside>
+    <div id="toasts" class="toasts" aria-live="polite"></div>
+    <section class="qa" id="qa" hidden aria-label="QA test events">
+      <div class="qa-h"><b>QA test moves</b><button class="x" id="qaClose" title="Close">Close <kbd>Q</kbd></button></div>
+      <p id="qaWhere" class="qa-w"></p>
+      <div class="qa-k" id="qaKinds"></div>
+      <div class="qa-f"><button class="btn sm ghost" id="qaClear">Clear test moves</button><span id="qaMsg" class="qa-m"></span></div>
+    </section>
+  </main>
+</div>
+<div class="pop model" id="modelPop" hidden role="dialog" aria-label="How the moves are scored"></div>
+<div class="pop pick" id="pick" hidden role="dialog"></div>
+<div id="tip" class="tip" role="tooltip"></div>
+<script type="module" src="app.js"></script>
+</body>
+</html>
