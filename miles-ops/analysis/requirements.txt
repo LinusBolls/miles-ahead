@@ -5,7 +5,7 @@ pyarrow==26.0.1
 scikit-learn==1.7.2
 joblib
 duckdb            # build_rideends_allcities.py, stranding*.py, fee_ledger.py, berlin_parking/
-tabpfn-client==0.10.1   # only for coldstart.py --tabpfn api (needs TABPFN_TOKEN)
+# tabpfn-client==0.10.1  # API runs only (needs TABPFN_TOKEN); install it separately: it pins pyarrow<=25.0.1, which clashes with the pin above
 # parking scripts only:
 shapely
 pyproj

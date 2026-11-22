@@ -59,3 +59,10 @@ build/
 # --- build output of drive-app/scripts/build_web ---
 miles-atlas/static/app/
 dist-web/
+# --- exception: small derived June 2024 files, car-level only (see README "Data") ---
+!miles-ops/analysis/rideends_allcities_2024-06.parquet
+!miles-ops/analysis/relocations_berlin_2024-06.parquet
+!miles-ops/analysis/parks_outcomes_berlin_2024-06.parquet
+!miles-ops/analysis/rides_damage_berlin_2024-06.parquet
+!miles-ops/model/cells_berlin.parquet
+!miles-ops/model/tabpfn_context.npz
