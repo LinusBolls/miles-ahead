@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no, viewport-fit=cover, maximum-scale=1" />
+    <title>Rescue · MILES feature concept</title>
+    <meta name="description" content="Concept prototype (demo data, June 2024 Berlin replay): a Rescue feature for the MILES app. Not the MILES app, not affiliated with MILES Mobility." />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="theme-color" content="#ffffff" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Rescue concept" />
+    <link rel="manifest" href="/app/manifest.json" />
+    <link rel="icon" type="image/png" href="/app/icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="/app/icons/apple-touch-icon.png" />
+    <link rel="preload" as="script" href="/app/vendor/maplibre-gl.js" />
+    <style id="expo-reset">
+      html, body { height: 100%; margin: 0; background: #fff; overscroll-behavior: none; }
+      body { overflow: hidden; -webkit-tap-highlight-color: transparent; font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif; }
+      #root { display: flex; height: 100%; flex: 1; }
+      .maplibregl-ctrl-attrib { font-size: 10px; }
+      /* attribution (i) sits under the concept pill, clear of the bottom sheet */
+      .maplibregl-ctrl-bottom-right { bottom: auto !important; top: calc(env(safe-area-inset-top) + 72px); }
+      html[data-embed] .maplibregl-ctrl-bottom-right { top: 122px; }
+    </style>
+  </head>
+  <body>
+    <noscript>This concept prototype needs JavaScript.</noscript>
+    <div id="root"></div>
+    <script>
+      if ("serviceWorker" in navigator && !/[?&]embed=1/.test(location.search)) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/app/sw.js", { scope: "/app/" }).catch(function () {});
+        });
+      }
+    </script>
+  </body>
+</html>

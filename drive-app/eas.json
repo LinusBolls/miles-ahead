@@ -1,0 +1,39 @@
+{
+  "cli": {
+    "version": ">= 24.8.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "channel": "production",
+      "autoIncrement": true,
+      "env": {
+        "PUSH": "1"
+      },
+      "ios": {
+        "resourceClass": "m-medium"
+      }
+    },
+    "production": {
+      "distribution": "store",
+      "channel": "production",
+      "autoIncrement": true,
+      "environment": "production",
+      "env": {
+        "PUSH": "1",
+        "APPLE_TARGETS": "1"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "ios": {
+        "ascAppId": "<your App Store Connect app id>",
+        "ascApiKeyPath": "./asc-key.p8",
+        "ascApiKeyId": "<your App Store Connect API key id>",
+        "ascApiKeyIssuerId": "<your App Store Connect issuer id>"
+      }
+    }
+  }
+}

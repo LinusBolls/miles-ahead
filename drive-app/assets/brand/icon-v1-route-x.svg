@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <rect width="1024" height="1024" fill="#FFFFFF"/>
+  <!-- dashed treasure route, lower-left sweeping up toward the destination -->
+  <path d="M 196 902 C 360 902, 372 742, 470 712 C 588 676, 612 560, 724 548"
+        fill="none" stroke="#0A0A0A" stroke-width="34"
+        stroke-linecap="round" stroke-dasharray="6 70"/>
+  <!-- X marks the spot -->
+  <g stroke="#0A0A0A" stroke-width="62" stroke-linecap="round">
+    <line x1="688" y1="470" x2="862" y2="644"/>
+    <line x1="862" y1="470" x2="688" y2="644"/>
+  </g>
+  <!-- € reward above the X -->
+  <text x="772" y="330" font-family="DejaVu Sans, Arial, Helvetica, sans-serif" font-weight="bold"
+        font-size="300" fill="#0A0A0A" text-anchor="middle" dominant-baseline="middle">&#8364;</text>
+</svg>

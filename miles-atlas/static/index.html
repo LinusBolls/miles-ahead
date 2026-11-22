@@ -1,0 +1,301 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MILES x Rescue</title>
+<meta name="description" content="A feature we think MILES should build: predict at ride end which cars will strand, with TabPFN, and pay a nearby rider €5 to move them. Open research, prototype and whitepaper.">
+<meta name="color-scheme" content="light">
+<meta name="theme-color" content="#FDFDFC">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/home/home.css">
+<script>
+// Normal scrolling by default. The presenting deck (snap + slide counter) only with ?deck, or press D.
+(function () {
+  var d = document.documentElement;
+  d.classList.add('js');
+  if (/[?&]deck\b/.test(location.search)) d.classList.add('deck');
+})();
+</script>
+</head>
+<body>
+
+<header class="bar">
+  <a class="brand" href="#top">MILES x Rescue</a>
+  <nav>
+    <a href="/whitepaper/whitepaper.pdf">Whitepaper (PDF)</a>
+    <a href="https://github.com/LinusBolls/miles-ahead">Code</a>
+    <a href="#live">Live</a>
+    <a href="#app">Try it</a>
+  </nav>
+</header>
+
+<main>
+
+<!-- 1 ─ Hero -->
+<section class="slide hero" id="top" data-title="MILES x Rescue">
+  <div class="in hero-grid">
+    <div class="hero-copy">
+    <h1 class="r">Every day, 2,700 MILES cars in Berlin end up where nobody rents them for 12 h or more.</h1>
+    <p class="lead r">We predict which ones at the moment the ride ends, using TabPFN, and offer a nearby rider €5 credit to move the car to where demand is.</p>
+    <p class="frame r">A feature we think MILES should build. Open research, prototype and whitepaper, free to use.</p>
+    <a class="cta-demo r" href="/app/">Open the interactive demo</a>
+    <ul class="links r">
+      <li><a href="/whitepaper/whitepaper.pdf">Whitepaper (PDF)<span class="arrow" aria-hidden="true">&nbsp;&rarr;</span></a></li>
+      <li><a href="https://github.com/LinusBolls/miles-ahead">Code on GitHub<span class="arrow" aria-hidden="true">&nbsp;&rarr;</span></a></li>
+      <li><a href="#app">How the app works<span class="arrow" aria-hidden="true">&nbsp;&rarr;</span></a></li>
+    </ul>
+    <a class="pulse r" href="#live" data-live="hero"><i></i><span>Connecting to the live scorer…</span></a>
+      </div>
+    <figure class="device-wrap hero-device" id="hero-device" data-fit="0.76">
+      <div class="device-box">
+      <div class="device" id="device" data-state="loading" data-layout="overlay">
+        <i class="btn-side l1"></i><i class="btn-side l2"></i><i class="btn-side l3"></i><i class="btn-side r1"></i>
+        <div class="bezel">
+          <div class="screen-ios">
+            <iframe id="app-frame" title="Rescue concept app, interactive" allow="geolocation"></iframe>
+            <div class="app-wait"><b>Interactive demo loading…</b><span>It appears here as soon as /app/ is online.</span></div>
+            <div class="sb" aria-hidden="true">
+              <span class="clock">9:41</span>
+              <span class="island"></span>
+              <span class="sys">
+                <svg viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx="0.8"/><rect x="5" y="5.5" width="3" height="6.5" rx="0.8"/><rect x="10" y="3" width="3" height="9" rx="0.8"/><rect x="15" y="0" width="3" height="12" rx="0.8"/></svg>
+                <svg viewBox="0 0 16 12" width="16" height="12"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.3-1.4A10.5 10.5 0 0 0 8 .3 10.5 10.5 0 0 0 .7 3.2L2 4.6a8.6 8.6 0 0 1 6-2.4zm0 3.8c1.3 0 2.5.5 3.4 1.3l1.3-1.4A6.8 6.8 0 0 0 8 4.1a6.8 6.8 0 0 0-4.7 1.8l1.3 1.4C5.5 6.5 6.7 6 8 6zm0 3.7-2 2.1L8 12l2-2.2-2-2.1z"/></svg>
+                <svg viewBox="0 0 27 12" width="27" height="12"><rect x="0.5" y="0.5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" stroke-opacity="0.4"/><rect x="2" y="2" width="20" height="8" rx="2"/><path d="M25 4v4c.8-.3 1.3-1.1 1.3-2S25.8 4.3 25 4z" fill-opacity="0.45"/></svg>
+              </span>
+            </div>
+            <div class="hi" aria-hidden="true"><i></i></div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <figcaption class="cap">Try it, it’s interactive · Concept, demo data</figcaption>
+    </figure>
+  </div>
+  <p class="foot">Unofficial research project. Not affiliated with MILES Mobility.</p>
+</section>
+
+<!-- 2 ─ Problem -->
+<section class="slide" id="problem" data-title="The problem">
+  <div class="in">
+    <h2 class="r">Cars sit in the wrong place, and relocation arrives a day late.</h2>
+    <div class="stats">
+      <div class="stat r"><b>2,700</b><span>cars a day strand: 18% of Berlin ride ends are followed by 12 hours or more without a rental.</span></div>
+      <div class="stat r"><b>24.6 h</b><span>median time after the last ride before a MILES relocation trip starts. MILES runs about 180 of these a day.</span></div>
+      <div class="stat r"><b>~4×</b><span>difference in next-rental wait by area. At 20:00 the best areas re-rent within 4.6 h, the worst take 17.3 h or more.</span></div>
+      <div class="stat r"><b>88%</b><span>of stranded waits end in a normal booking, 0.1% in a repair. Stranded cars are fine. They are just in the wrong place.</span></div>
+    </div>
+    <p class="note r">Vans strand 5.5× as often, evening ride ends 3.5× (logistic regression, Berlin, 208k ride ends).</p>
+    <figure class="chart r">
+      <svg id="timeline" viewBox="0 0 1000 150" role="img" aria-label="Timeline: we score at ride end, 0 hours. A car counts as stranded after 12 hours idle. The median stranded wait is 18 hours. MILES relocation starts at a median 24.6 hours."></svg>
+      <figcaption>Hours after a ride ends. Berlin, June 3–23 2024. Relocation delay from MILES relocation trips in the same period.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 3 ─ How it works -->
+<section class="slide" id="how" data-title="How it works">
+  <div class="in">
+    <h2 class="r">Three TabPFN predictions turn a ride end into one decision.</h2>
+    <ol class="flow">
+      <li class="r pfn-step"><em>At ride end</em><h3>Will it strand?</h3><p>P(no rental in the next 12 h) for this car, here, now.</p><span class="tags"><small class="tag">TabPFN</small><small class="tag live">live</small></span></li>
+      <li class="r pfn-step"><em>Where to</em><h3>Where should it go?</h3><p>Value map: P(not rented within 12 h) for every 1 km area and hour. Pick a nearby area that re-rents fast.</p><span class="tags"><small class="tag">TabPFN</small><small class="tag off">offline</small></span></li>
+      <li class="r pfn-step"><em>Before offering</em><h3>Will it still be there?</h3><p>P(the car is still free when the rider arrives). Backs “money back if gone”.</p><span class="tags"><small class="tag">TabPFN</small><small class="tag off">offline</small></span></li>
+      <li class="r"><em>Gate</em><h3>Is it worth €5?</h3><p>Offer only when the expected gain beats the reward and refund risk. Pushes are budget-gated, about one per rider a day. A quiet day sends none.</p><small class="tag rule">Rule</small></li>
+    </ol>
+    <div class="split r">
+      <div><h3>Rescue, in the MILES app (concept)</h3><p>Riders see only the cars worth moving, with the reward, the walk and the odds it is still there.</p></div>
+      <div><h3>Operator console (running)</h3><p>MILES ops see the flagged cars ranked by value and grouped into runs for their own crews.</p></div>
+    </div>
+    <p class="note r">Two surfaces, one engine. Live today, step 1 runs on the TabPFN API for every Berlin ride end. Steps 2 and 3 are evaluated offline (results below); until they are wired in, the console picks destinations from historical demand per 1 km area.</p>
+  </div>
+</section>
+
+<!-- 4 ─ Live: TabPFN scorer + embedded operator console -->
+<section class="slide" id="live" data-title="Running live">
+  <div class="in">
+    <div class="livehead">
+      <h2 class="r">It is running right now.</h2>
+      <p class="lead sm r">Every Berlin ride end our scraper sees is scored by the TabPFN API within a minute (60 s micro-batches). Cars worth moving land in the operator console as runs a crew can take: assign or skip, outcome tracked.</p>
+    </div>
+    <div class="livegrid">
+      <div class="browser r" id="console">
+        <div class="chrome">
+          <span class="live-badge" id="embed-badge"><i></i>Live</span>
+          <span class="url">miles.bolls.dev/ops</span>
+          <div class="toggle" role="group" aria-label="Show the live console or the recording">
+            <button type="button" data-mode="live" aria-pressed="true">Live</button>
+            <button type="button" data-mode="rec" aria-pressed="false">Recording</button>
+          </div>
+          <a class="out" href="/ops/" target="_blank" rel="noopener">Open full console ↗</a>
+        </div>
+        <div class="screen" id="embed">
+          <iframe id="ops-frame" title="MILES x Rescue operator console, live" loading="lazy" tabindex="-1"></iframe>
+          <video id="ops-video" data-src="/home/media/ops.mp4" poster="/home/media/ops.jpg" muted loop playsinline preload="none"></video>
+          <div class="pending" id="ops-pending"><b>Recording unavailable</b><span>Open the full console instead.</span></div>
+        </div>
+      </div>
+      <div class="side">
+        <dl class="metrics r" id="metrics">
+          <div><dt>Latest Berlin ride end</dt><dd data-k="ago">–</dd></div>
+          <div><dt>Flagged as likely to strand → worth a move now (the console’s Relocate list)</dt><dd data-k="flagged">–</dd></div>
+          <div><dt>Rows scored by TabPFN</dt><dd data-k="rows">–</dd></div>
+          <div><dt>TabPFN API calls succeeded</dt><dd data-k="calls">–</dd></div>
+          <div><dt>Median API latency per batch</dt><dd data-k="lat">–</dd></div>
+          <div><dt>Rows that fell back to the GBM</dt><dd data-k="fb">–</dd></div>
+        </dl>
+        <p class="status r" id="live-status">Connecting…</p>
+        <p class="src served r">Served live: 11-feature version, AUC 0.822 on the same test days (miles-ops/model/tabpfn_meta.json).</p>
+      </div>
+    </div>
+    <p class="label r" id="live-caption">Live: 2026 Berlin ride ends from our scraper, scored by the TabPFN API with a June 2024 context. Counters since service start.</p>
+  </div>
+</section>
+
+<!-- 5 ─ Results: stranding -->
+<section class="slide" id="results" data-title="Results: which car strands">
+  <div class="in">
+    <h2 class="r">On 5% of the data, TabPFN comes within 0.012 AUC of a GBM trained on all of it.</h2>
+    <p class="lead sm r">At equal data it beats the GBM by 0.021 AUC with a third of the calibration error. Given 20× more data, the GBM still edges it on accuracy.</p>
+    <div class="tbl r" id="auc-table" role="table" aria-label="Stranding model comparison"></div>
+    <p class="src r">Served live: 11-feature version, AUC 0.822 on the same test days (miles-ops/model/tabpfn_meta.json). The table is the full-feature offline benchmark.<br>Berlin, train Jun 3–16 2024, test days Jun 17–22. TabPFN via the Prior Labs API, 10k-row context, no tuning. ECE: expected calibration error, lower is better. Top-10% hit: share of the 10% highest-scored ride ends that really stranded (base rate 18%).</p>
+  </div>
+</section>
+
+<!-- 6 ─ Cold start -->
+<section class="slide" id="coldstart" data-title="Results: a new city">
+  <div class="in two">
+    <div class="col">
+      <h2 class="r">In a new city, TabPFN learns from local rides without any training.</h2>
+      <p class="lead sm r">With Berlin context and no training, TabPFN reaches 0.665 → 0.710 as local rides grow from 50 to 1,000. A GBM trained on Berlin only scores ≈0.65 in new cities; that comes from a different run, and the comparison setup is pending confirmation.</p>
+    </div>
+    <figure class="chart r">
+      <svg id="cold" viewBox="0 0 620 400" role="img" aria-label="TabPFN AUC with Berlin context by number of new-city rides: 0.665 at 50, 0.688 at 200, 0.710 at 1000."></svg>
+      <figcaption>AUC on held-out cities by number of local labelled rides. TabPFN: Carolina’s API rerun (scripts being added to the repo). Berlin-transfer GBM: miles-ops/analysis/coldstart_results_off.csv (different run).</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 7 ─ Value map + still there -->
+<section class="slide" id="valuemap" data-title="Results: where to, and still there?">
+  <div class="in">
+    <h2 class="r">Where to send the car, and whether it will still be there.</h2>
+    <div class="cols2">
+      <div class="facts r">
+        <h3>Value map: where to send it</h3>
+        <p><b class="pfn">0.777</b> AUC TabPFN 10k, P(not rented within 12 h) per 1 km area and hour <span>vs 0.785 GBM on 500k rows, 0.762 GBM on 10k</span></p>
+        <p><b>0.90</b> correlation of predicted vs observed risk per area</p>
+      </div>
+      <div class="facts r">
+        <h3>Money-back: will it still be there?</h3>
+        <p><b class="pfn">0.827</b> AUC TabPFN <span>calibration in the large: 4.7% predicted vs 4.6% observed; GBM baseline pending</span></p>
+        <p><b>1.2%</b> refunds at a 95% cutoff <span>68% of cars still shown, ≈ €6 per 100 rescues at €5</span></p>
+      </div>
+    </div>
+    <p class="src r">Berlin, test days Jun 17–22 2024. Value map from 1.7M hourly car snapshots, 1 km areas. Money-back: car still free after a 5–30 min walk.</p>
+  </div>
+</section>
+
+<!-- 9 ─ The app -->
+<section class="slide" id="app" data-title="Rescue in the MILES app">
+  <div class="in two app">
+    <figure class="device-wrap r" id="poster-device" data-fit="0.72">
+      <div class="device-box">
+      <div class="device" id="device-poster" data-state="poster" data-layout="overlay">
+        <i class="btn-side l1"></i><i class="btn-side l2"></i><i class="btn-side l3"></i><i class="btn-side r1"></i>
+        <div class="bezel">
+          <div class="screen-ios">
+            <img class="poster" src="/home/media/app-poster.jpg" alt="Still image of the Rescue concept app: a map of Berlin with €5 rescue offers" width="390" height="844">
+            <video id="app-video" data-src="/home/media/app.mp4" muted loop playsinline preload="none"></video>
+            <div class="sb" aria-hidden="true">
+              <span class="clock">9:41</span>
+              <span class="island"></span>
+              <span class="sys">
+                <svg viewBox="0 0 18 12" width="18" height="12"><rect x="0" y="8" width="3" height="4" rx="0.8"/><rect x="5" y="5.5" width="3" height="6.5" rx="0.8"/><rect x="10" y="3" width="3" height="9" rx="0.8"/><rect x="15" y="0" width="3" height="12" rx="0.8"/></svg>
+                <svg viewBox="0 0 16 12" width="16" height="12"><path d="M8 2.2c2.3 0 4.4.9 6 2.4l1.3-1.4A10.5 10.5 0 0 0 8 .3 10.5 10.5 0 0 0 .7 3.2L2 4.6a8.6 8.6 0 0 1 6-2.4zm0 3.8c1.3 0 2.5.5 3.4 1.3l1.3-1.4A6.8 6.8 0 0 0 8 4.1a6.8 6.8 0 0 0-4.7 1.8l1.3 1.4C5.5 6.5 6.7 6 8 6zm0 3.7-2 2.1L8 12l2-2.2-2-2.1z"/></svg>
+                <svg viewBox="0 0 27 12" width="27" height="12"><rect x="0.5" y="0.5" width="23" height="11" rx="3.2" fill="none" stroke="currentColor" stroke-opacity="0.4"/><rect x="2" y="2" width="20" height="8" rx="2"/><path d="M25 4v4c.8-.3 1.3-1.1 1.3-2S25.8 4.3 25 4z" fill-opacity="0.45"/></svg>
+              </span>
+            </div>
+            <div class="hi" aria-hidden="true"><i></i></div>
+          </div>
+        </div>
+      </div>
+      </div>
+      <figcaption class="cap">Concept prototype of the feature inside the MILES app — demo data, not the real MILES app. Still image; <a href="#top">▲ try it on slide 1</a>.</figcaption>
+      <div class="toggle app-toggle" id="app-toggle" role="group" aria-label="Still image or screen recording" hidden>
+        <button type="button" data-mode="poster" aria-pressed="true">Still</button>
+        <button type="button" data-mode="rec" aria-pressed="false">Watch on a real phone</button>
+      </div>
+    </figure>
+    <div class="col">
+      <h2 class="r">Rescue: a feature inside the MILES app.</h2>
+      <p class="lead sm r">Riders see only the cars worth moving, and earn credit for driving one a short way to a busier area.</p>
+      <div class="offer r"><span>€5 · 4 min walk · 97% still there · money back if gone</span></div>
+      <div class="qr r">
+        <div id="qr" aria-hidden="true"></div>
+        <div>
+          <h3>Open it on your phone</h3>
+          <p><a id="app-url" href="#"></a></p>
+          <p class="src">Concept with demo data (June 2024 replay), not live MILES cars. On a laptop, the phone on slide 1 runs the same app.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 11 ─ Value + experiment -->
+<section class="slide" id="value" data-title="Value and the experiment">
+  <div class="in two">
+    <div class="col">
+      <h2 class="r">Worth €130k to €1.2M a year in Berlin. A two-week test tells which.</h2>
+      <p class="lead sm r">How many riders accept an offer is the one number we cannot know from data. It moves the answer by 4×, so we propose measuring it.</p>
+      <div class="exp r">
+        <h3>Proposed A/B test, two weeks</h3>
+        <p>Randomly split flagged cars into offer and no offer. Measure acceptance, time to next rental and net € per flagged car.</p>
+      </div>
+      <blockquote class="r">Bike sharing already pays riders to move bikes before stations empty (Citi Bike Bike Angels); car sharing still waits a day — we bring that prediction to free-floating cars with TabPFN.</blockquote>
+    </div>
+    <figure class="chart r">
+      <h3>Yearly value by rider acceptance</h3>
+      <div id="ranges" class="ranges"></div>
+      <figcaption>Assumptions: flag the top 10% of ride ends, about 1,490 cars a day, of which 58% really strand. A rescue is worth €17–28, the reward is €5. Alternative view, not additive: up to ≈€1.3M/yr if rescues replaced all ~180 staff trips/day (180 × €20 × 365).</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- 12 ─ Limits + links -->
+<section class="slide" id="limits" data-title="Limits and links">
+  <div class="in two">
+    <div class="col">
+      <h2 class="r">What this does not show.</h2>
+      <ul class="limits">
+        <li class="r"><b>No personalization.</b> The models know cars and places, never riders.</li>
+        <li class="r"><b>Most stranded cars are on the edge of the city</b>, a median 7.3 km from the centre. “4 min walk” holds for the inner-city slice. The volume is in the operator console.</li>
+        <li class="r"><b>The concept app runs on June 2024 replay data.</b> The live scorer above runs on 2026 ride ends.</li>
+        <li class="r"><b>A GBM on all the data edges TabPFN on Berlin accuracy.</b> TabPFN’s case is calibration at equal data, data efficiency and learning a new city from its first rides without training.</li>
+        <li class="r"><b>Acceptance is assumed</b>, not measured, until the A/B test runs.</li>
+      </ul>
+    </div>
+    <div class="col end">
+      <div class="linklist r">
+        <a href="/whitepaper/whitepaper.pdf"><b>Whitepaper (PDF)</b><span>Method, baselines, economics, experiment design</span></a>
+        <a href="/whitepaper/main.tex"><b>LaTeX source</b><span>/whitepaper/main.tex</span></a>
+        <a href="https://github.com/LinusBolls/miles-ahead"><b>Code</b><span>github.com/LinusBolls/miles-ahead</span></a>
+        <a href="/ops/"><b>Operator console</b><span>miles.bolls.dev/ops</span></a>
+        <a href="/map/"><b>Fleet atlas</b><span>The scraped MILES fleet data on a map, miles.bolls.dev/map</span></a>
+      </div>
+      <p class="team r">Linus Bolls, Carolina Blasco<br>Built at Prior Labs HACKLAB #2, CIC Berlin, November 2026. Unofficial, not affiliated with MILES Mobility.</p>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<div class="deckbar" aria-hidden="true"><span id="deck-title"></span><span id="deck-count"></span></div>
+
+<script src="/home/vendor/qrcode.js"></script>
+<script src="/home/home.js"></script>
+</body>
+</html>

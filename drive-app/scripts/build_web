@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+# Build the Rescue concept PWA and stage it into miles-atlas/static/app/ (then deploy with miles-atlas/deploy.sh).
+# Served at https://miles.bolls.dev/app/ — needs experiments.baseUrl = process.env.EXPO_WEB_BASE_URL in app.config.ts.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+OUT="../miles-atlas/static/app"
+cp src/data/vehicles.json public/api/vehicles.json
+rm -rf dist-web
+EXPO_WEB_BASE_URL=/app npx expo export --platform web --output-dir dist-web
+mkdir -p "$OUT"
+rsync -a --delete dist-web/ "$OUT"/
+echo "staged $(du -sh "$OUT" | cut -f1) into $OUT"

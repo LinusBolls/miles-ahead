@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Publish src/ (JavaScript) changes over the air to everyone on the current TestFlight build with the same native
+# fingerprint. Native changes (new native package, app.config.ts, plugins, permissions) need scripts/release instead.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+msg="${1:-$(git log -1 --format=%s 2>/dev/null || echo 'update')}"
+eas update --branch production --platform ios --message "$msg"

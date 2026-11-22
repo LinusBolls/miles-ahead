@@ -1,0 +1,40 @@
+metric,value,unit,denominator/notes
+window,2024-06-03..06-22 (20d),,"Berlin city='BER', clean replay window"
+label,idle_h>12,,repo stranding_clean.py definition
+rideends_total,301995,count,"Berlin, window"
+rideends_per_day,15100,count/day,/20d
+stranded_total,53616,count,idle>12h
+stranded_rate,17.75,% of ride-ends,53616/301995
+stranded_per_day,2681,count/day,vs MISSION ~2700/18%
+stranded_per_day_min,2458,count/day,daily distribution
+stranded_per_day_median,2698,count/day,
+stranded_per_day_max,2955,count/day,
+stranded_and_charge_le25,6077,count,11.3% of stranded; 304/day
+stranded_and_charge_lt20,2797,count,5.2% of stranded; 140/day
+stranded_and_charge_le10,600,count,1.1% of stranded; 30/day
+mean_charge_all,60.9,%,all ride-ends
+mean_charge_stranded,60.2,%,stranded cars
+mean_charge_notstranded,61.0,%,non-stranded
+p_charge_le25_all,10.4,% of all ride-ends,base rate
+p_charge_le25_stranded,11.3,% of stranded,barely above base => different populations
+stranded_low25_combustion,5882,count,294/day refuel-eligible
+stranded_low25_electric,195,count,10/day charge-eligible
+stranded_median_dist_km,7.33,km,"from 52.52,13.405"
+stranded_within_5km,25.4,% of stranded,13597 cars; ~S-Bahn ring proxy
+stranded_5_10km,46.7,% of stranded,25022 cars
+stranded_10_20km,27.9,% of stranded,14957 cars
+stranded_20km_plus,0.1,% of stranded,40 cars; left-city outliers negligible
+stranded_low25_median_dist_km,7.02,km,low-fuel subset similar
+stranded_low25_within_5km,26.5,% of subset,1610 cars
+HEADLINE_walkable_lowfuel_per_day,80,count/day,stranded & charge<=25 & <5km of centre (1610 total)
+cells_min30,1520,grid cells,"~400m, cover 99% of ride-ends"
+dwell_optimal_cells,0.8,h median,top-decile turnover cells
+dwell_fleet_avg,2.0,h median,all cells
+dwell_stranded_location,5.9,h median,cells where stranded cars sit
+turnover_ratio_opt_vs_strandedloc,3.6-4.9,x,SOLID metric (ride-time 0.5h..0h)
+turnover_ratio_opt_vs_fleet,2.0,x,
+stranded_mean_idle_h,22.3,h,car unavailable per strand (median 18.4)
+lost_car_days_per_day_excess12h,1123,car-days/day,"idle beyond 12h, cap72"
+lost_car_days_per_day_excess24h,370,car-days/day,"conservative, >1 day strands"
+eur_per_day_excess12h_band,3400-18000,EUR/day,"ILLUSTRATIVE: 1123 x Fraunhofer EUR3-16/car-day, UNVERIFIED fare"
+eur_per_strand_event_band,2.80-14.90,EUR/event,ILLUSTRATIVE: 0.93 car-days x EUR3-16/car-day

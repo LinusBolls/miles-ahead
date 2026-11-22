@@ -1,0 +1,15 @@
+#!/usr/bin/env bash
+# Build Fuelback on EAS (cloud) and upload to TestFlight internal. No local Xcode needed.
+# Needs Apple signing credentials: either log in to Apple when prompted, or set the ASC API key up first
+# (see README "Build + upload to TestFlight"). Fill eas.json submit.production.ios.ascApiKeyIssuerId for a
+# non-interactive submit, or let `eas submit` prompt.
+set -euo pipefail
+cd "$(dirname "$0")/.."
+profile="${1:-preview}"   # preview = TestFlight internal (no review); production = App Store
+echo "Building iOS ($profile) on EAS…"
+eas build -p ios --profile "$profile" --non-interactive || {
+  echo "Non-interactive build failed (usually missing credentials). Retrying interactively so you can log in to Apple:"
+  eas build -p ios --profile "$profile"
+}
+echo "Submitting the latest build to App Store Connect / TestFlight…"
+eas submit -p ios --latest --profile production

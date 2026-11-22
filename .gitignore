@@ -53,3 +53,9 @@ build/
 *.log
 .idea/
 .vscode/
+
+# --- raw data dropped in locally (see README "Reproduce") ---
+/data/
+# --- build output of drive-app/scripts/build_web ---
+miles-atlas/static/app/
+dist-web/

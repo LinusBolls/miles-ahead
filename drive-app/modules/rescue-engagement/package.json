@@ -1,0 +1,6 @@
+{
+  "name": "rescue-engagement",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Local Expo module: Rescue Live Activity + widget data bridge (iOS)"
+}
