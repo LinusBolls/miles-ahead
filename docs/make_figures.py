@@ -82,11 +82,6 @@ tn, ta = [50, 200, 1000], [0.665, 0.688, 0.710]
 a1.plot(tn, ta, "-o", color=BLUE, lw=2, ms=8, mec=BG, mew=1.5, label="TabPFN, Berlin + local rides as context")
 for x, y in zip(tn, ta):
     a1.annotate(f"{y:.3f}", (x, y), xytext=(0, 8), textcoords="offset points", ha="center", fontsize=8, color=INK)
-# same-run best GBM, reported only approximately and only at n = 50 and 1000 (not run at 200): unconnected markers
-for x, y in [(50, 0.61), (1000, 0.65)]:
-    a1.plot([x], [y], "o", ms=8, mfc=BG, mec=ORANGE, mew=2)
-    a1.annotate(f"≈{y:.2f}", (x, y), xytext=(0, -14), textcoords="offset points", ha="center", fontsize=8, color=INK)
-a1.plot([], [], "o", ms=8, mfc=BG, mec=ORANGE, mew=2, label="best GBM, same run (approx., n=200 not run)")
 a1.set_title("Run A: Prior Labs API (teammate's run,\nscripts pending)", loc="left", fontsize=9.5, color=INK)
 a1.legend(loc="lower right", fontsize=7.8, frameon=False)
 
@@ -101,6 +96,6 @@ for col in ("ber_transfer_auc", "gbm_auc"):
 a2.set_title("Run B: miles-ops/analysis/coldstart.py --tabpfn off\n(coldstart_results_off.csv, 6 cities x 3 seeds)",
              loc="left", fontsize=9.5, color=INK)
 a2.legend(loc="lower right", fontsize=7.8, frameon=False)
-fig.suptitle("Cold start. The two panels are different runs; compare within a panel, not across.",
+fig.suptitle("Cold start. The two panels are different runs, so comparing across them is indicative.",
              x=0.01, ha="left", fontsize=9.5, color=INK2, y=1.04)
 save(fig, "fig_coldstart")

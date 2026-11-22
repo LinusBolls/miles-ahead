@@ -9,7 +9,7 @@ This is open applied research and a feature we think MILES should build. It is f
 It is **unofficial and not affiliated with or endorsed by MILES Mobility**. MILES did not take part.
 
 - Landing page: <https://miles.bolls.dev/>
-- Whitepaper (PDF): <https://miles.bolls.dev/whitepaper/whitepaper.pdf> (source in [`whitepaper/latex/`](whitepaper/latex/))
+- Whitepaper (PDF): <https://miles.bolls.dev/whitepaper/whitepaper.pdf> (same file in the repo: [`whitepaper/latex/main.pdf`](whitepaper/latex/main.pdf); source in [`whitepaper/latex/`](whitepaper/latex/))
 - Operator console: <https://miles.bolls.dev/ops/>
 - Concept rider app (PWA): <https://miles.bolls.dev/app/>
 
@@ -18,14 +18,16 @@ are on historical Berlin data from June 2024.
 
 ## The problem
 
-In Berlin in June 2024 about **2,700 ride ends per day (18%)** were followed by more than 12 hours idle
+In Berlin in June 2024 **more than 2,000 cars a day strand**: 18% of ride ends were followed by more than 12 hours idle
 ([`rescue_stranded_validation.md`](miles-ops/analysis/rescue_stranded_validation.md): 53,616 of 301,995 ride ends
 over 20 days = 17.75%). Most of these cars are not broken; they are parked where nobody wants a car next.
 MILES runs about **186 relocation trips a day**, starting a median **24.1 h** after the last customer ride
 (3,724 `IN_RELOCATION_TRIP` runs, June 3-22 2024; [`relocations_june.py`](miles-ops/analysis/relocations_june.py)).
 By then 80% of the cars we flag at ride end have already been rented without help. (Relocations are read from the
-public status record, not from operator logs.) The staff-vs-user economics are in
-[`whitepaper/value_model.md`](whitepaper/value_model.md).
+public status record, not from operator logs.) On rental time alone, staff moves as practised lose about
+**€0.6-2.7M a year** (MILES may relocate for other reasons too). A mature hybrid (riders move flagged cars at ride end,
+staff only for the predicted long tail) could save about **€0.6-3M a year in Berlin**. These are operating-model
+scenarios, not a TabPFN result; the staff-vs-user economics are in [`whitepaper/value_model.md`](whitepaper/value_model.md).
 
 If stranding can be predicted at the moment a ride ends, the car can be moved before the day is lost.
 
@@ -46,7 +48,8 @@ If stranding can be predicted at the moment a ride ends, the car can be moved be
 
 ## Results
 
-Berlin, train 3-16 June 2024, test 17-22 June 2024, base rate 17.75%. TabPFN = 10k-row context, no tuning.
+Berlin, train 3-16 June 2024, test 17-22 June 2024 (time split; all AUCs below are on the test days), base rate 17.75%.
+TabPFN = 10k-row context, no tuning.
 
 | Stranding model | Training rows | AUC | ECE | Top-10% hit rate |
 |---|---|---|---|---|
@@ -74,8 +77,8 @@ two June weeks and are tested on its last two weeks.
 | GBM trained on local rides only | 0.554 | 0.588 | 0.603 | `coldstart_results_off.csv` |
 
 The TabPFN row and the GBM rows come from **different runs**, so the comparison is indicative until both are rerun
-together. In the TabPFN run, the best same-run GBM baseline was about 0.61 at n=50 and about 0.65 at n=1000 (not run
-at n=200). The figure keeps the two runs in separate panels for that reason.
+together. TabPFN's margin over the Berlin-transfer GBM is about 0.02 at n=50 and about 0.06 at n=1000. The figure
+keeps the two runs in separate panels for that reason.
 
 ![Cold start, two runs](docs/fig_coldstart.svg)
 
@@ -112,7 +115,8 @@ Same-budget GBM baselines are pending. Scripts pending.
     scores the batch and the move says so.
   - **Replay** plays back real June 2024 ride ends with TabPFN scores **precomputed** out-of-sample by
     [`build_tabpfn.py`](miles-ops/backend/build_tabpfn.py). It is always labelled "Replay".
-  - A car becomes a relocate move at p >= 0.4556 (the top 10% of ride ends; 56% of those really stranded).
+  - A car becomes a relocate move at p >= 0.4556 (the top 10% of ride ends). On the 17-22 June test days
+    57% of flagged cars really strand, 3x the 18% base rate (served 11-feature model).
 - **Concept rider app** (<https://miles.bolls.dev/app/>; source in [`drive-app/`](drive-app/)): a map that badges only
   the cars predicted to strand. The user picks where they are going; the app ranks nearby flagged cars by a credit
   (≤ €5) priced from the idle hours the move saves. It runs on
@@ -174,7 +178,7 @@ We reran step 2 from a fresh clone of this repo on 22 Nov 2026; the output was b
 
 | Number | Script | Output |
 |---|---|---|
-| 2,700 strandings/day, 17.75% | analysis script `rescue_analysis.py`: **pending** | [`rescue_stranded_validation.md`](miles-ops/analysis/rescue_stranded_validation.md), [`rescue_stranded_aggregates.csv`](miles-ops/analysis/rescue_stranded_aggregates.csv) |
+| More than 2,000 strandings/day, 17.75% of ride ends | analysis script `rescue_analysis.py`: **pending** | [`rescue_stranded_validation.md`](miles-ops/analysis/rescue_stranded_validation.md), [`rescue_stranded_aggregates.csv`](miles-ops/analysis/rescue_stranded_aggregates.csv) |
 | 186 relocations/day, median 24.1 h late | [`relocations_june.py`](miles-ops/analysis/relocations_june.py) | parquet regenerated by the script (not committed) |
 | Staff vs user economics, annual scenarios | [`rescue_ab_value.py`](miles-ops/analysis/rescue_ab_value.py), [`ab_economics.py`](miles-ops/analysis/ab_economics.py), [`ab_scenarios.py`](miles-ops/analysis/ab_scenarios.py) | [`value_model.md`](whitepaper/value_model.md) |
 | Nov 2026 out-of-time test (AUC 0.763, context refresh +0.012) | [`oot_2026.py`](miles-ops/analysis/oot_2026.py) | [`results/oot_2026.md`](miles-ops/analysis/results/oot_2026.md) |
@@ -214,7 +218,8 @@ the table; it is not the source of the table's 0.858.
 - **Stranded cars are mostly peripheral** (median 7.3 km from the centre; about 75% beyond 5 km). A good area within
   1 km exists for only 4.6% of flagged cars, which is why the rescue is "take it where you're going anyway", not a
   short walk-and-park.
-- **Concept app** runs on one demo snapshot; its "97% still there" is a fixed policy figure, not a per-car score.
+- **Concept app** runs on one demo snapshot; its "97% still there" is a fixed demo value, not a per-car score. The policy behind it: only cars with a predicted
+  P(still there) of at least 95% are offered (≥95% still there); then about 1.2% of rescues find the car gone.
 - **Relocation baseline** (186/day, 24.1 h) is read from the public status record, not from operator logs.
 
 ## Repository layout
