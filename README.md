@@ -28,7 +28,7 @@ If stranding can be predicted at the moment a ride ends, the car can be moved be
 
 ## Method
 
-- **Data.** The public MILES vehicle record scraped by the [vorfahrt](https://github.com/koenidv/vorfahrt) project:
+- **Data.** The MILES public vehicle endpoint, as recorded by the [vorfahrt](https://github.com/koenidv/vorfahrt) project:
   position, status and fuel level of every car, every few minutes. One row per customer ride end. No user data.
 - **Label.** `idle_h > 12`: hours from a ride end to the car's next status change.
 - **Split.** Strictly by time: train 3-16 June 2024, test 17-22 June 2024. Data after 23 June is not used (the
@@ -95,7 +95,7 @@ Same-budget GBM baselines are pending. Scripts pending.
   API in [`miles-ops/backend/`](miles-ops/backend/)). One ranked list of today's moves: *relocate* cars likely to
   strand, and *clear* cars sitting in or heading into a paid or no-parking spot. Moves are grouped into field runs you
   assign or skip, and outcomes are stored.
-  - **Live** reads real Berlin ride ends from our scraper's database and scores them with TabPFN through the Prior
+  - **Live** reads real Berlin ride ends recorded from the MILES public vehicle endpoint and scores them with TabPFN through the Prior
     Labs API against the fixed June 2024 context, batched every 60 s
     ([`app/strand_tabpfn.py`](miles-ops/backend/app/strand_tabpfn.py)). If a call fails or takes over 20 s, a GBM
     scores the batch and the move says so.
@@ -172,7 +172,9 @@ We reran step 2 from a fresh clone of this repo on 22 Nov 2026; the output was b
 | Still there (AUC 0.827, 4.7% vs 4.6%) | **teammate's Prior Labs API rerun; scripts pending** | - |
 
 `tabpfn_meta.json` also holds an older teammate run (`metrics_carolina`: TabPFN 0.824, GBM 0.84) from before the
-final feature set; the table above supersedes it.
+final feature set; the table above supersedes it. Its key `gbm_in_sample_replay: 0.858` is a different, **in-sample**
+number (GBM fit and scored on June 3-22) that happens to round to the same value as the out-of-sample GBM-all result in
+the table; it is not the source of the table's 0.858.
 
 ## Limits
 
