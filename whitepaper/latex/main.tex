@@ -7,10 +7,12 @@
 \usepackage[a4paper,margin=2.6cm]{geometry}
 \usepackage{amsmath}
 \usepackage{booktabs}
+\usepackage{array}
 \usepackage{eurosym}
 \usepackage{enumitem}
 \usepackage{caption}
 \usepackage{pgfplots}
+\usepackage{graphicx}
 \pgfplotsset{compat=1.18}
 \usepackage[numbers,sort&compress]{natbib}
 \usepackage[hidelinks]{hyperref}
@@ -40,17 +42,17 @@ for free-floating car sharing with a tabular foundation model\thanks{Code, data 
 \maketitle
 
 \begin{abstract}
-\noindent In free-floating car sharing a car can end a rental in a place where nobody wants it next. In Berlin in June 2024, about 2,700 ride ends per day (18\%) were followed by more than 12 hours idle. These cars are not broken: 88\% of such waits end in a normal booking or ride and 0.1\% in a repair. They are in the wrong place. The operator, MILES, relocates about 180 cars per day, starting a median 24.6\,h after the last customer ride. We ask whether stranding can be predicted at the moment a ride ends, so that a nearby user can be paid a small credit to move the car before the day is lost. We use TabPFN, a tabular foundation model, with a fixed 10,000-row context and no tuning, and compare it with gradient-boosted trees (GBM) and logistic regression on a strict time split (train 3--16 June 2024, test 17--22 June). TabPFN reaches AUC 0.846 (ECE 0.010) on 5\% of the training data. A GBM trained on all 208k rows still has the highest accuracy (AUC 0.858, ECE 0.008); at the same 10k-row budget the GBM reaches 0.825 with three times the calibration error (0.030). In a new city, with Berlin rides as context and no training, TabPFN reaches AUC 0.665 to 0.710 as local rides grow from 50 to 1,000; a GBM trained on Berlin alone stays flat at about 0.65. The same model family gives a value map of where a moved car will be rented soonest (AUC 0.777) and a still-there probability that prices a money-back guarantee (AUC 0.827; 4.7\% predicted gone versus 4.6\% observed, baselines pending). Recoverable value depends mainly on how many users accept a rescue, for which we know of no published measurement; at 5--20\% acceptance we estimate \eur{130k}--1.2M per year for Berlin. We specify a two-week randomized experiment to measure it, and release code and data processing openly. All results are on historical June 2024 data; the stranding model is also served on live Berlin ride ends, without outcome evaluation so far.
+\noindent In free-floating car sharing a car can end a rental in a place where nobody wants it next. In Berlin in June 2024, about 2,700 ride ends per day (18\%) were followed by more than 12 hours idle. These cars are not broken: 88\% of such waits end in a normal booking or ride and 0.1\% in a repair. They are in the wrong place. The operator, MILES, relocates 186 cars per day with staff, starting a median 24.1\,h after the last customer ride. We ask whether stranding can be predicted at the moment a ride ends, so that a user who is leaving from nearby anyway can be paid a small credit to take the car where they are going, before the day is lost. We use TabPFN, a tabular foundation model, with a fixed 10,000-row context and no tuning, and compare it with gradient-boosted trees (GBM) and logistic regression on a strict time split (train 3--16 June 2024, test 17--22 June). TabPFN reaches AUC 0.846 (ECE 0.010) on 5\% of the training data. A GBM trained on all 208k rows still has the highest accuracy (AUC 0.858, ECE 0.008); at the same 10k-row budget the GBM reaches 0.825 with three times the calibration error (0.030). In a new city, with Berlin rides as context and no training, TabPFN reaches AUC 0.665 to 0.710 as local rides grow from 50 to 1,000; a GBM trained on Berlin alone stays flat at about 0.65. The same model family gives a value map of where a moved car will be rented soonest (AUC 0.777) and a still-there probability that prices a money-back guarantee (AUC 0.827; 4.7\% predicted gone versus 4.6\% observed, baselines pending). To decide which moves are worth paying for, we value a car by the hours until its next rental. MILES' staff relocations save about 4.2 car-hours each, less than they cost, because by the time staff arrive 80\% of the cars we flag at ride end have already been rented without help. For 81\% of flagged cars a MILES customer starts a ride within a 10-minute walk in the next three hours. If that customer takes the flagged car to their destination, about 6--8 hours are saved. With a credit priced by the stated destination and capped at \eur{5}, we estimate a net contribution of \eur{0}--0.4M per year for Berlin at 5--20\% acceptance. The range depends on the margin and on how many rescuers would not have rented a car anyway. We specify a two-week randomized experiment that measures both, and release code and data processing openly. Model development uses historical June 2024 data. The stranding model is also served on live Berlin ride ends. On 2,563 of them from one Saturday in November 2026, the frozen June 2024 context reaches AUC 0.763 (ECE 0.033), tied with the GBM fallback (0.770).
 \end{abstract}
 
 \section{Introduction}
 
-A free-floating fleet is a spatial inventory. Cars end their rentals wherever the last customer leaves them, and a car parked where demand is thin earns nothing until demand comes to it. Operators correct this by moving cars, but they do it after the fact. In our Berlin data, MILES runs about 180 relocation trips per day, and these begin a median of \textbf{24.6\,h after the last customer ride}. By then a day of availability is already gone.
+A free-floating fleet is a spatial inventory. Cars end their rentals wherever the last customer leaves them, and a car parked where demand is thin earns nothing until demand comes to it. Operators correct this by moving cars, but they do it after the fact. In our Berlin data, MILES runs 186 staff relocation trips per day (3,724 runs of the status \texttt{IN\_RELOCATION\_TRIP} over 3--22 June 2024), and these begin a median of \textbf{24.1\,h after the last customer ride}. By then a day of availability is already gone.
 
 The problem is large and regular. Over 3--22 June 2024, \textbf{17.75\% of Berlin ride ends, about 2,700 per day, were followed by more than 12\,h idle} (Section~\ref{sec:data}). % 18.4 h median, 3.6--4.9x gap, 7.3 km / 75%, 301,995 / 53,616, daily min/median/max: miles-ops/analysis/rescue_stranded_validation.md
 A stranded car waits a median 18.4\,h. Stranding is not a maintenance problem: 88\% of stranded waits end in a normal customer booking or ride and 0.1\% in a repair. Where a car sits matters a lot: cars in the fastest-turning areas are re-rented 3.6--4.9 times faster than cars in the areas where stranded cars sit.
 
-Paying users to rebalance a shared fleet is not new. Bike sharing already pays riders to move bikes before stations run empty (Citi Bike's Bike Angels programme~\citep{freund2019analytics}). Car sharing still waits a day. Free-floating cars have no stations whose fill level defines need, so need has to be predicted for each car. We bring that prediction to free-floating cars with TabPFN, at the moment each ride ends. We know of no free-floating operator that does this predictively per ride; we do not claim that incentive-based relocation itself is new.
+Paying users to rebalance a shared fleet is not new. Bike sharing already pays riders to move bikes before stations run empty (Citi Bike's Bike Angels programme~\citep{freund2019analytics}). Free-floating car sharing has paid bonus minutes for ending rides in fixed target zones~\citep{lippoldt2019cologne}, and MILES relocates with staff about a day after the last ride (Section~\ref{sec:ab-mech}). Free-floating cars have no stations whose fill level defines need, so need has to be predicted for each car. We bring that prediction to free-floating cars with TabPFN, at the moment each ride ends. We know of no published free-floating system that predicts stranding per ride at ride end and prices the credit from the user's destination; we do not claim that incentive-based relocation itself is new.
 
 This is an open-source applied-research contribution, not a product. The consumer app and operator console we built are proof-of-concept surfaces for one engine. Everything is released for reuse.
 
@@ -58,7 +60,7 @@ This is an open-source applied-research contribution, not a product. The consume
 \begin{enumerate}
 \item A decision loop for free-floating fleets that runs at ride end: stranding score, then a value map that says where to send the car, then a still-there probability, then a net-value gate that decides whether to offer a credit (Section~\ref{sec:loop}).
 \item A same-budget benchmark of TabPFN against GBM and logistic regression on a real fleet, with a strict time split, calibration, and a new-city cold-start test. We report where TabPFN wins and where it does not (Section~\ref{sec:results}).
-\item Economic scenarios that keep the unknown acceptance rate explicit, and a two-week experiment that measures it (Sections~\ref{sec:econ} and~\ref{sec:ab}).
+\item A value model that prices a move as the difference in expected hours until the next rental, with each term mapped to the model that estimates it. With it we compare MILES' measured staff relocations against user rewards, give break-evens rather than point guesses, and show annual scenarios that keep acceptance and cannibalisation explicit. A two-week experiment then measures both (Sections~\ref{sec:value} and~\ref{sec:ab}).
 \item A live deployment of the stranding model on current Berlin ride ends through the Prior Labs TabPFN API, with a GBM fallback (Section~\ref{sec:live}).
 \end{enumerate}
 
@@ -67,6 +69,8 @@ This is an open-source applied-research contribution, not a product. The consume
 \paragraph{Relocation in car sharing.} Operations research has studied vehicle relocation mostly from the operator's side: mixed-integer programmes for fleet design and simulation for daily operation, with staff moving cars~\citep{illgen2019relocation}. \citet{weikl2015relocation} built a relocation model for a free-floating fleet in Munich and tested it in field trials. These approaches are run by staff and react to an imbalance once it exists. We move the decision to the moment a rental ends and hand the move to nearby users.
 
 \paragraph{User-based and incentive-based relocation.} \citet{schiffer2021polynomial} treat user-based relocation in free-floating systems as an assignment problem solvable in polynomial time, given demand. \citet{stokkink2021predictive} combine customer incentives with a predictive Markov-chain model in one-way car sharing, setting each incentive by trading its cost against the expected lost demand. We adopt that cost-against-lost-value view. We differ in three ways: the setting is free-floating, the prediction is per car at ride end, and the predictor is a learned tabular model evaluated against matched baselines. Bike Angels pays bike-share riders to rebalance toward stations that need bikes~\citep{freund2019analytics}; it is the direct precedent for our mechanism.
+
+\paragraph{Prior work on this data source.} \citet{koenig2025thesis}, who wrote the collector our data come from, analysed 100 days of MILES Berlin data from 2025 (1.18M trips). He asked whether demand and trip destinations can be predicted well enough to steer users with incentives. The work is descriptive. Points of interest explain more than half of weekday demand deviance in a geographically weighted regression, while weather and traffic explain under 1\%. Destination prediction before the trip is capped at about 15\% top-1 accuracy (best model 9.0\%), which he judges ``much too low to base discounts for implicit user relocations on''. The thesis contains no utilisation, idle-time or cost model. We build on it in three ways: we predict per ride end instead of describing aggregates, we add a euro decision model, and we measure the operator's own relocations. His destination result shapes our mechanism: the user is asked where they are going rather than the destination being guessed. The figures of 27\,min and about \eur{10} per relocation on his slides, and a survey figure of 85\% of users accepting a more distant car for a 10\,ct/km discount, are cited there from earlier studies. We could not confirm them in the originals and use them only as cited in \citet{koenig2025thesis}.
 
 \paragraph{Idle-time prediction.} \citet{carrone2024idle} model idle time in free-floating car sharing with a hazard model and argue that idle time is a cleaner signal than bookings because it avoids latent demand. We predict the same kind of outcome, but as classification tasks at ride end, each tied to an action.
 
@@ -78,7 +82,7 @@ This is an open-source applied-research contribution, not a product. The consume
 
 \paragraph{Study window.} We use Berlin, June 2024. The collection breaks from 24 June, and the data are cut at 23 June 00:00; the clean window is 3--22 June 2024. It contains 301,995 Berlin ride ends (about 15,100 per day).
 
-\paragraph{Label.} A ride end is \emph{stranded} if the car's next status change comes more than 12\,h later ($\mathit{idle\_h} > 12$). In the window, 53,616 ride ends (17.75\%, about 2,700 per day) are stranded. The daily count is stable (min 2,458, median 2,698, max 2,955). Because $\mathit{idle\_h}$ runs to the next status change of any kind, it slightly understates dwell before the next rental. The 12-hour threshold is the label; ``a day'' in the text refers to observed durations, such as the 24.6\,h relocation delay.
+\paragraph{Label.} A ride end is \emph{stranded} if the car's next status change comes more than 12\,h later ($\mathit{idle\_h} > 12$). In the window, 53,616 ride ends (17.75\%, about 2,700 per day) are stranded. The daily count is stable (min 2,458, median 2,698, max 2,955). Because $\mathit{idle\_h}$ runs to the next status change of any kind, it slightly understates dwell before the next rental. The 12-hour threshold is the label; ``a day'' in the text refers to observed durations, such as the 24.1\,h relocation delay.
 
 \paragraph{Features.} All are known at ride end: vehicle class (size, van, premium, electric, model), fuel or battery level, hour and weekday, position and distance from the city centre, and local supply and demand (free cars nearby, departures nearby in the last 24\,h).
 
@@ -93,11 +97,7 @@ Four predictions feed one decision, made each time a ride ends.
 \item \textbf{Still-there}, $P(\text{available on arrival})$: probability that the car is still available when a rescuer who is 5--30 minutes away arrives. It backs the user-facing guarantee ``money back if gone''.
 \item \textbf{Cold start}: the same stranding model, used in a new city with Berlin rides as context and few local rides.
 \end{enumerate}
-The predictions combine into a net value for each candidate,
-\begin{equation}
-\text{net value} = P(\text{strand}) \times \text{value of a rescue} - \text{credit},
-\end{equation}
-where the value of a rescue is the availability recovered by moving the car from its cell to a low-$W$ cell. A car is offered only if the net value is positive and $P(\text{available on arrival}) \geq 95\%$. In this study the credit is fixed at \eur{5}, so the rule ``credit $\leq$ expected loss $-$ margin'' acts as a gate: a car is offered only if its expected recovered value exceeds \eur{5} plus a margin. Offers are budget-gated: on a quiet day nothing is sent, and each user receives at most about one offer per day. The same ranked list goes to an operator console, so staff relocation can target the same cars a day earlier.
+The predictions combine into the value of a rescue $\Delta V$: the expected hours of idle saved by moving the car to where it will be rented sooner, in euros (Section~\ref{sec:value}). The offer goes to a user who is starting a MILES ride nearby anyway, and the credit depends on the destination the user states. It equals $\min(\text{\eur{5}}, R^\ast)$, where $R^\ast$ is the largest reward the rescue can pay for. A car is offered only if $\Delta V$ exceeds the credit and $P(\text{available on arrival}) \geq 95\%$. Offers are budget-gated: on a quiet day nothing is sent, and each user receives at most about one offer per day. The same ranked list goes to an operator console. There, staff are sent only to the long tail: cars still idle whose predicted remaining idle time exceeds the break-even of a staff move.
 
 Because the rule multiplies a probability by a value in euros, calibration matters as much as ranking. A predicted 30\% must mean about 30\%.
 
@@ -107,7 +107,7 @@ Because the rule multiplies a probability by a value in euros, calibration matte
 
 \paragraph{Metrics.} AUC for ranking; Expected Calibration Error (ECE, 10 equal-width probability bins) for whether probabilities can be trusted; and top-10\% hit rate, the share of the 10\% highest-scored ride ends that really strand. The hit rate matters operationally because only the top of the list is acted on. The base rate is 17.75\%. We did not evaluate post-hoc calibration of the GBM (isotonic or Platt scaling), which would likely narrow its calibration gap; TabPFN's advantage is that it is calibrated without a held-out calibration set.
 
-\paragraph{Cold start.} A MILES city other than Berlin is treated as new. Models get $n$ local ride ends from the city's first two June weeks and are tested on its last two weeks. TabPFN gets Berlin rides plus the $n$ local rides as context and is not trained. We compare two GBM baselines: one trained only on the $n$ local rides, and one trained only on Berlin and applied to the new city without local data (transfer). The GBM rows in Table~\ref{tab:cold} come from the committed script \texttt{miles-ops/analysis/coldstart.py} over six cities and three seeds (\texttt{coldstart\_results\_off.csv}); the TabPFN row and the first GBM row come from a separate run on the Prior Labs API.
+\paragraph{Cold start.} A MILES city other than Berlin is treated as new. Models get $n$ local ride ends from the city's first two June weeks and are tested on its last two weeks. TabPFN gets Berlin rides plus the $n$ local rides as context and is not trained. We compare two GBM baselines: one trained only on the $n$ local rides, and one trained only on Berlin and applied to the new city without local data (transfer). The GBM rows in Table~\ref{tab:cold} come from the committed script \texttt{miles-ops/analysis/coldstart.py} over six cities and three seeds (\texttt{coldstart\_results\_off.csv}); the TabPFN row and the first GBM row come from a separate run on the Prior Labs API whose script is not yet released.
 
 \section{Results}\label{sec:results}
 
@@ -180,13 +180,13 @@ The GBM trained on all 208k rows has the highest accuracy and the lowest calibra
 
 \begin{table}[h]
 \centering
-\caption{Stranding AUC in a new city by number of local training rides $n$. Rows (a) and (b) come from one run on the Prior Labs API; rows (c) and (d) from the committed script (\texttt{coldstart\_results\_off.csv}, mean over six cities and three seeds). \emph{Data: MILES public vehicle endpoint, June 2024.}}
+\caption{Stranding AUC in a new city by number of local training rides $n$. Rows (a) and (b) come from one run on the Prior Labs API ($^\dagger$script not yet released; the committed \texttt{coldstart.py} gives TabPFN local rides only, without Berlin context); rows (c) and (d) from the committed script (\texttt{coldstart\_results\_off.csv}, mean over six cities and three seeds). \emph{Data: MILES public vehicle endpoint, June 2024.}}
 \label{tab:cold}
 \begin{tabular}{lccc}
 \toprule
 Model & $n=50$ & $n=200$ & $n=1000$ \\
 \midrule
-(a) \textbf{TabPFN}, Berlin + local rides as context & \textbf{0.665} & \textbf{0.688} & \textbf{0.710} \\
+(a) \textbf{TabPFN}, Berlin + local rides as context$^\dagger$ & \textbf{0.665} & \textbf{0.688} & \textbf{0.710} \\
 (b) Best GBM baseline, same run & $\approx$\,0.61 & not run & $\approx$\,0.65 \\
 (c) GBM trained on Berlin only (transfer) & 0.649 & 0.647 & 0.655 \\
 (d) GBM trained on local rides only & 0.554 & 0.588 & 0.603 \\
@@ -275,61 +275,204 @@ Vehicle class and time of day dominate (Table~\ref{tab:or}). Local demand protec
 
 The stranding model is also served on current data. Live Berlin ride ends from our 2026 collector are micro-batched every 60\,s and sent to the Prior Labs TabPFN API, with the fixed June 2024 10k-row context. If a call times out (20\,s) or fails, that batch is scored by a GBM fallback instead. The counters are public at \url{https://miles.bolls.dev/ops/api/health}. Fetched \livets{}, cumulative since the service last restarted: \livecalls{} API calls, \liveok{} successful; \liverowstabpfn{} ride ends scored by TabPFN and \liverowsfallback{} by the fallback (\livefallbackbatches{} batches); median latency \livepfifty\,s per batch (90th percentile \livepninety\,s).
 
-Three caveats apply. First, the served model uses a reduced feature set without the local supply and demand features; its out-of-sample AUC on 17--22 June 2024 ride ends is 0.822 (\texttt{miles-ops/model/tabpfn\_meta.json}), below the 0.846 of Table~\ref{tab:strand}. Second, the context is two years older than the ride ends it scores, and we have not yet evaluated live scores against realised outcomes. Third, the demo replay of June 2024 uses scores computed offline with the same context; it is labelled as replay.
+Three caveats apply. First, the served model uses a reduced feature set without the local supply and demand features; its out-of-sample AUC on 17--22 June 2024 ride ends is 0.822 (\texttt{miles-ops/model/tabpfn\_meta.json}), below the 0.846 of Table~\ref{tab:strand}. Second, the context is more than two years older than the ride ends it scores; Section~\ref{sec:oot} evaluates that gap on one day of realised November 2026 outcomes. Third, the demo replay of June 2024 uses scores computed offline with the same context; it is labelled as replay.
 
-\section{Economic scenarios}\label{sec:econ}
+\subsection{Out-of-time test on November 2026 ride ends}\label{sec:oot}
 
-What a rescue programme is worth depends mainly on how many users accept an offer. We know of no published measurement for free-floating cars, so we give scenarios rather than one number.
-
-The top 10\% of ride ends are flagged, about 1,490 per day, of which 58\% really strand (Table~\ref{tab:strand}). A rescue of a car that would have stranded is assumed to be worth \eur{17}--28 in recovered availability. The credit is \eur{5} and is paid for every accepted rescue, including the 42\% of flagged cars that would not have stranded. The annual value is
-\begin{equation}
-1{,}490 \times \text{acceptance} \times \left(0.58 \times \text{value of a rescue} - \text{\eur{5}}\right) \times 365.
-\end{equation}
+We scored real Berlin ride ends from our 2026 collector with the frozen June 2024 context and compared them with realised outcomes (\texttt{miles-ops/analysis/oot\_2026.py}, results in \texttt{results/oot\_2026.md}). The set has 2{,}563 customer ride ends from Saturday 21 November 2026, 13:17--21:46 UTC (base rate 11.2\%). It excludes the airport, ride ends whose labels were censored or made ambiguous by scraper outages, and the burst detected right after an outage. Table~\ref{tab:oot1} scores all rows with the models as served in June: TabPFN with the June 10k context, as live, the GBM fallback, and a GBM trained on the same 10k June rows. Confidence intervals are bootstrap 95\% intervals.
 
 \begin{table}[h]
-\centering
-\caption{Annual recoverable value in Berlin by acceptance rate (value of a rescue \eur{17}--28, credit \eur{5}). Acceptance is unmeasured. \emph{Source: scenario model; inputs from Table~\ref{tab:strand} and stated assumptions.}}
-\label{tab:econ}
-\begin{tabular}{lcc}
+\centering\small
+\caption{Out-of-time test, all 2{,}563 November 2026 ride ends, models frozen on June 2024. Paired AUC difference against TabPFN: GBM fallback $+0.006$ [$-0.009$, $+0.022$]; GBM on the same 10k rows $-0.014$ [$-0.023$, $-0.003$]. June 2024 reference for the same TabPFN context: AUC 0.822, ECE 0.015. \emph{Source: \texttt{oot\_2026.py}.}}
+\label{tab:oot1}
+\begin{tabular}{@{}lcccc@{}}
 \toprule
-Acceptance & Rescues per day & Value per year \\
+Model & AUC [95\% CI] & ECE [95\% CI] & Brier & Top-10\% prec. \\
 \midrule
-5\% & $\approx$\,75 & \eur{130k}--300k \\
-10\% & $\approx$\,150 & \eur{260k}--610k (central $\approx$\,\eur{0.4M}) \\
-20\% & $\approx$\,300 & \eur{530k}--1.2M \\
+TabPFN, June 10k ctx (as live) & 0.763 [0.733, 0.792] & 0.033 [0.025, 0.047] & 0.093 & 0.348 \\
+GBM fallback (June, 13 feat.) & 0.770 [0.741, 0.796] & 0.037 & 0.094 & 0.328 \\
+GBM, same June 10k rows & 0.750 [0.720, 0.778] & 0.032 & 0.095 & 0.309 \\
 \bottomrule
 \end{tabular}
 \end{table}
 
-An alternative way to value the same rescues is avoided staff work: up to about \eur{1.3M} per year if accepted rescues replaced all of MILES' roughly 180 staff relocation trips per day ($180 \times \eur{20} \times 365$, with \eur{20} per trip assumed). This is not additive to Table~\ref{tab:econ}, and it needs about 12\% acceptance ($180 / 1{,}490$). Acceptance is defined per flagged car, so the still-there filter (68\% shown) and walking distance both reduce it. Stranded cars are mostly peripheral, which limits walk-up rescues (Section~\ref{sec:limits}).
+AUC falls from 0.822 in June 2024 to 0.763 two and a half years later, and calibration stays usable (ECE 0.033). TabPFN and the GBM fallback are statistically tied; the paired interval of their difference includes zero. TabPFN is ahead of a GBM given the same 10k June rows.
 
-\section{Proposed experiment: two weeks to measure acceptance}\label{sec:ab}
+Table~\ref{tab:oot2} asks whether recent rows help without retraining. It splits the day in time order: the first 1{,}281 ride ends serve as extra context (or training data for the baselines), and the remaining 1{,}282 (base rate 15.0\%) are the test set. Isotonic recalibration and retrained GBMs get exactly the same early rows.
 
-The economics hinge on one unmeasured number, so the next step is to measure it, not to model it further.
+\begin{table}[h]
+\centering\small
+\caption{Context refresh on the later 1{,}282 ride ends, strict time order. Paired AUC difference against frozen TabPFN, 95\% interval: June 10k + early Nov context $+0.012$ [$+0.004$, $+0.019$]; Nov-only context $-0.012$ [$-0.038$, $+0.015$]; isotonic $-0.004$ [$-0.009$, $+0.000$]; GBM fallback $+0.008$ [$-0.013$, $+0.027$]; GBM retrained on June 10k + early Nov $+0.008$ [$-0.008$, $+0.024$]. ECE intervals are shown for TabPFN rows only. \emph{Source: \texttt{oot\_2026.py}.}}
+\label{tab:oot2}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Model & AUC [95\% CI] & ECE & Brier \\
+\midrule
+TabPFN, June 10k context (frozen) & 0.722 [0.683, 0.760] & 0.040 [0.032, 0.064] & 0.120 \\
+TabPFN, June 10k + early Nov rows as context & 0.734 [0.695, 0.771] & 0.033 [0.026, 0.056] & 0.117 \\
+TabPFN, early Nov rows only as context & 0.710 [0.670, 0.748] & 0.077 [0.060, 0.096] & 0.125 \\
+TabPFN frozen + isotonic on early Nov & 0.718 [0.678, 0.755] & 0.050 [0.036, 0.069] & 0.120 \\
+GBM fallback (June) & 0.730 [0.692, 0.766] & 0.055 & 0.122 \\
+GBM fallback + isotonic on early Nov & 0.724 [0.686, 0.760] & 0.042 & 0.119 \\
+GBM retrained on June 10k + early Nov & 0.730 [0.692, 0.767] & 0.038 & 0.118 \\
+GBM retrained on early Nov only & 0.693 [0.653, 0.733] & 0.105 & 0.132 \\
+\midrule
+\multicolumn{4}{@{}l}{\emph{Context sizes chosen after seeing the 10k and 0k results (reported for completeness):}} \\
+TabPFN, June 5k + early Nov & 0.740 [0.703, 0.776] & 0.024 [0.015, 0.044] & 0.116 \\
+GBM retrained, June 5k + early Nov & 0.720 [0.681, 0.757] & 0.043 & 0.121 \\
+TabPFN, June 2k + early Nov & 0.754 [0.716, 0.790] & 0.022 [0.014, 0.044] & 0.114 \\
+GBM retrained, June 2k + early Nov & 0.712 [0.673, 0.750] & 0.053 & 0.122 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\linewidth]{oot_2026.png}
+\caption{November 2026 ride ends, later 1{,}282 rows. Left: calibration of TabPFN with the frozen June context and with early-November rows added (bins with at least 15 rows). Right: AUC with bootstrap 95\% intervals; the dashed line is the June 2024 test AUC. The 2k and 5k rows use subsample sizes chosen after the fact. \emph{Source: \texttt{oot\_2026.py}.}}
+\label{fig:oot}
+\end{figure}
+
+Adding the early November rows to the June context raises AUC by 0.012 (paired interval excludes zero) and lowers ECE from 0.040 to 0.033, without training anything. A GBM retrained on the same rows reaches the same AUC (0.730), so this is a tie, not a win; the advantage is operational, since refreshing a context needs no training run. A November-only context of 1{,}281 rows is badly calibrated (ECE 0.077), because those early rows are afternoon rides with a 7\% base rate while the test rows run into the evening.
+
+\paragraph{Caveats.} (i) One Saturday afternoon and evening: labelled ride ends cover 13:17--16:50 and 21:27--21:46 UTC, because the collector was down from 16:50 to 21:12 UTC. (ii) The 2026 collector sees only about half of all rides as status changes; the other half appear as silent jumps (the car reappears at least 150\,m away). The label therefore ends idle time at the next status change \emph{or} the next move of at least 150\,m. In June 2024 status alone matched 99\% of rides, so this is the same quantity measured with a weaker collector. (iii) 71\% of the 2026 ride ends are car models unknown to the June vocabulary (VW Polo GP, Opel Corsa Hybrid, Opel Astra ST, Toyota Yaris Cross Hybrid), so their model feature is missing, in live scoring too. (iv) The live service does not store per-ride-end scores, so the frozen-context scores were recomputed with the same context, features and \texttt{random\_state}. (v) The refresh is optimistic: in strict operation the 12\,h labels of early rows would not yet be known for later rows of the same day. (vi) The 2k and 5k subsample sizes were chosen after seeing the 10k and 0k results; all sizes tried are reported.
+
+\section{Value of a rescue, and who should move the car}\label{sec:value}
+
+All numbers in this section are measured on the June 2024 Berlin data with the scripts \texttt{miles-ops/analysis/relocations\_june.py}, \texttt{rescue\_ab\_value.py}, \texttt{ab\_economics.py} and \texttt{ab\_scenarios.py}, unless a public source is cited or the number is labelled as an assumption. Unknowns are given as ranges or break-evens, not point estimates.
+
+\subsection{What moving a car is worth}
+
+\paragraph{Currency: hours until the next rental.}
+Let $I(x,t,k)$ be the hours until the next customer rental of a car of class $k$ left at place $x$ at time $t$. It is heavy-tailed: over all June parks the mean is 6.19\,h, the median 2.21\,h, and $P(I>12\,\mathrm{h})=17.2\%$. Stranded cars are not lost rentals (Section~\ref{sec:results}), so a rescue moves the next rental earlier by $\Delta$ hours. After that rental the car's future is a fresh draw from the fleet, since Berlin trips scatter over a median 4.0\,km. The whole future is therefore shifted $\Delta$ hours earlier, and the fleet gains $\Delta$ hours of average car-life, worth $\rho m$ per hour. Here $\rho={}$\eur{1.364} is revenue per car-hour (\eur{227.0}M over 19,000 cars and 8,760\,h, the mean of the year-end fleets of 20,100 and 17,900~\citep{miles2024annual}). The margin of an extra rental hour, $m$, is not published. We bound it from the audited profit and loss statement: $m=0.23$ if all material costs, leasing and insurance included, were variable, and $m=0.79$ if only fuel and consumables, payment fees and bad-debt write-downs were. The value of a placement over a horizon $H$ and the value of a rescue are
+\begin{align}
+V_H(x,t,k) &= \rho m\,\bigl(H-\mathrm{E}[\min(I(x,t,k),H)]\bigr),\\
+\Delta V &= s\,\rho m\,\Bigl(\mathrm{E}\bigl[\min(I_1,H)\,\big|\,I_1>\tau_w\bigr]-\mathrm{E}\bigl[\min(\tau+I_2,H)\bigr]\Bigr)(1-\kappa).
+\end{align}
+Here $I_1$ is the idle at the current spot and $I_2$ the idle at the target $(x_2,t_2)$. $\tau$ is the time until the car is available there: drive time for staff, or the wait until the user takes it, since the user's own trip is a normal paid rental. $s$ is the probability that the car is still there when the rescuer arrives after walking $\tau_w$. $\kappa$ is the share of the moved car's rentals taken from cars already at the target (cannibalisation). With the credit $R$ paid only for completed rescues and refunded if the car is gone, the expected net value of an accepted offer is $\Delta V-R$. MILES should offer if $\Delta V-R\ge\mu$, so the largest affordable reward is $R^\ast=\Delta V-\mu$. The credit costs MILES between $R(1-m)$, if it is redeemed on a ride that would not otherwise happen, and $R$, if the ride would have happened anyway.
+
+\begin{table}[h]
+\centering\small
+\caption{Each term of the rescue value and the model that estimates it. \emph{Data: MILES public vehicle endpoint, Berlin, June 2024.}}
+\label{tab:terms}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.2cm}>{\raggedright\arraybackslash}p{4.3cm}>{\raggedright\arraybackslash}p{6.6cm}@{}}
+\toprule
+Term & Estimated by & Status \\
+\midrule
+$P(I_1>12\,\mathrm{h})$ & TabPFN classifier & exists; AUC 0.846 (served model 0.822), Table~\ref{tab:strand} \\
+distribution of $I_1$ & TabPFN regressor (predictive quantiles) & results pending; fallback in the console: $p\,h_{\text{strand}}+(1-p)\,h_{\text{other}}$, mean 14.5\,h vs realised 15.6\,h on flagged cars \\
+distribution of $I_2$ (value map) & TabPFN regressor at the target & results pending; empirical cell map today: out-of-sample MAE 4.74\,h vs 5.54\,h for city-by-hour ($H{=}48$\,h) \\
+target $x_2$ & A: chosen by MILES. B: stated by the user; a destination model gives a prior & destination-model results pending; anonymous destinations are hard to predict (top-1 ceiling $\approx$15\%~\citep{koenig2025thesis}) \\
+$s$ & TabPFN still-there classifier ($=1-F_{I_1}(\tau_w)$) & AUC 0.827; 4.7\% predicted vs 4.6\% observed gone (Section~\ref{sec:results}) \\
+$\kappa$ & not identifiable from scraped data & proxy: median 2 idle cars already in the 400\,m drop-off cell; measured by the experiment (Section~\ref{sec:ab}) \\
+$\rho$, $m$ & annual report; bounded & $\rho={}$\eur{1.364}; $m\in[0.23,0.79]$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Why a predictive distribution.}
+A point estimate of $I$ is not enough, for three reasons. (i) The horizon enters as $\mathrm{E}[\min(I,H)]$, which differs from $\min(\mathrm{E}[I],H)$ for a heavy tail: for cars with $p\approx0.55$ it is 8.3, 12.1 and 14.0\,h at $H=12$, 24 and 48\,h. Choosing $H$ is a read-out of one distribution, not a refit. (ii) The median understates the expected wait. At G\"orlitzer Park on weekday evenings the median idle is 1.8\,h but the mean is 4.8\,h, with 13\% of cars idle beyond 12\,h, so a median-based value map overstates $\Delta V$ by about 3\,h per rescue. (iii) The money-back guarantee is priced by the lower tail, $P(I_1<\tau_w)$, and a staff rule such as ``move if still idle at 12\,h'' needs the conditional residual $\mathrm{E}[I-12\mid I>12]$. Both come from the same predictive distribution.
+
+\paragraph{Worked example.}
+Take a car with $p=0.55$, moved to G\"orlitzer Park in the evening, with $H=24$\,h. Cars with $p\in[0.52,0.58]$ have $\mathrm{E}[\min(I_1,24)]=12.08$\,h (test days, $n=1{,}642$). The mean wait at the target is 4.69\,h, and the move takes about 0.25\,h (assumption). The car gains $\Delta H=7.14$\,h, which is \eur{9.74} of revenue and $\Delta V={}$\eur{2.2}--7.6 at $m\in[0.23,0.79]$. This is about half of what a median-based, revenue-only calculation gives (\eur{15.53}).
+
+\subsection{Staff relocation or user reward?}\label{sec:ab-mech}
+
+\paragraph{What MILES does today.}
+Over 3--22 June 2024 MILES ran 3{,}724 staff relocations, 186 per day. They took a median 37\,min over 10.0\,km (straight line) and moved cars from a median 8.7\,km to 3.4\,km from the centre. They started a median 24.1\,h after the last customer ride (83\% after more than 12\,h), mostly between 08:00 and 23:00. For the counterfactual we compare each relocated car with cars in the same 1\,km cell that had already been idle at least as long. Within 24\,h of the move those cars stayed idle another 9.12\,h, while relocated cars waited 4.93\,h, so a staff move saved 4.19\,h. This comparison is observational: MILES chooses which cars to move, and it may relocate for reasons other than rental time. By the time staff arrive, 80\% of the cars our model flags at ride end have already been rented without help. Moving a flagged car at ride end instead of a day later would save 8.7\,h per flagged car instead of 1.7\,h. The savings per car moved are similar (9.2 vs 8.6\,h), but early action needs 4.8 times as many moves, more than a daytime staff team can make.
+
+\paragraph{Who else could move the car.}
+The served model flags 1{,}288 ride ends per day on the test days (top 10\%); 57.1\% of them truly strand. For 56\% (80.6\%) of these flagged cars, at least one MILES customer starts a ride within 0.4\,km (0.8\,km) in the next 0.25--3\,h. If the customer whose real destination is best took the flagged car instead, the car would gain 4.43\,h (5.93\,h). A detour of at most 1\,km to the best cell near the destination raises this to 6.46\,h (7.76\,h). If that customer would have rented another MILES car anyway (a ``swap''), the system gains only 0.52\,h (1.00\,h), because the other car now stands idle instead. A dedicated short walk-and-park rarely reaches demand: the nearest cell with a typical wait of 3\,h or less is a median 4.5\,km from a flagged car, and only 4.6\% of flagged cars have one within 1\,km.
+
+\begin{table}[h]
+\centering\small
+\caption{Staff relocation (A) vs user reward (B), per move, horizon 24\,h. Hours are measured. Value $=$ hours $\times\,\rho m$ (times $s=0.988$ for B), with $m\in[0.23,0.79]$. Staff cost: 0.86--1.05 staff-hours (37\,min drive, 25.7\% of moves chained, 15--30\,min access otherwise, assumed) at \eur{13.90}/h minimum wage plus 21\% employer contributions~\citep{mindestlohn2026}, up to \eur{35.8}/h sector labour cost~\citep{destatis2026labour}, plus 13.8--18.2\,ct/km~\citep{adacpolo2026} over the measured distance times an assumed road factor of 1.3, plus fares. Credit cost lies between $R(1-m)$ and $R={}$\eur{5}. \emph{Data: MILES public vehicle endpoint, Berlin, June 2024.}}
+\label{tab:ab}
+\begin{tabular}{@{}lrrrr@{}}
+\toprule
+Mechanism & Hours & Value (\euro) & Cost (\euro) & Net (\euro) \\
+\midrule
+A, staff as practised (+24\,h) & 4.19 & 1.3--4.5 & 16.4--42.9 & $-41.6$ to $-11.8$ \\
+A, staff at ride end (hypothetical) & 9.18 & 2.9--9.9 & 16.4--42.9 & $-40.1$ to $-6.4$ \\
+B, user going anyway, 5\,min walk & 4.43 & 1.4--4.7 & 1.0--5.0 & $-3.6$ to $+3.7$ \\
+B, user going anyway, 10\,min walk & 5.93 & 1.8--6.3 & 1.0--5.0 & $-3.2$ to $+5.3$ \\
+B, 10\,min walk, ${\le}1$\,km detour & 7.76 & 2.4--8.3 & 1.0--5.0 & $-2.6$ to $+7.3$ \\
+B, user would rent anyway (swap) & 0.5--1.0 & 0.2--1.1 & 1.0--5.0 & $-4.8$ to $0.0$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\paragraph{Break-evens.}
+(i) A staff move pays for itself on rental time only if it saves at least 15.1\,h (cheapest cost, highest margin); the measured saving is 4.19\,h. Even a perfectly chained run costs at least \eur{12.1} per car, so no run length closes the gap. Using each relocation's expected saving from its cell, none of the June relocations reaches the break-even. (ii) Per move, B beats A whenever the credit costs MILES less than \eur{16.4}, at any acceptance rate. Acceptance sets B's scale, not its sign. (iii) A flat \eur{5} credit at full cost pays if $m\ge0.63$ (10\,min walk) or $m\ge0.48$ (with a detour). The affordable reward is $R^\ast={}$\eur{1.8}--6.3 (10\,min) and \eur{2.4}--8.3 (with a detour), so the credit should depend on the destination. (iv) At full credit cost, B needs at least 75\% of rescuers to be incremental (10\,min radius). This share is the decisive unknown. (v) B matches today's 186 staff moves per day if 18\% of flagged cars with a nearby user find a taker. In a Cologne field test, 20 bonus minutes (about \eur{4}--4.80 at the per-minute rates reported) reached a 65\% take rate and cut idle time in the target area by 37\%~\citep{lippoldt2019cologne}. Those offers went to customers who were renting anyway, so the take rate is an upper reference and says nothing about the incremental share.
+
+\paragraph{Hybrid.} User rewards come first: at ride end, priced per destination, and capped at \eur{5}. MILES already has the payment rails: it pays \eur{5} for refuelling below 25\% and \eur{10} for charging below 30\%, and it marks discounted cars~\citep{milescredit2026}. What is missing is \emph{which} car to pay for and \emph{how much}. Staff are sent only to cars still idle whose predicted remaining idle within the day exceeds the break-even (from the TabPFN regressor's conditional tail; results pending), or for reasons other than rental time.
+
+\subsection{Two objections}\label{sec:objections}
+
+\paragraph{``The idle is intentional coverage.''}
+If MILES kept cars at the edge of its business area on purpose, rescuing them would destroy availability it pays for. The data do not support this outside the airport. First, the rental that ends a stranding does not pay for the wait. Outside the S-Bahn ring it covers a median 4.6\,km (straight line), the same as rentals after a short park (4.8\,km), and its list fare is \eur{0.17} higher after 19.6 more idle hours. Per idle hour it earns \eur{0.30}, against \eur{1.91} after a park of at most 12\,h; the pattern holds in every distance band. Second, MILES' own staff pull cars inward: 84.5\% of relocations move the car more than 1\,km towards the centre and 4.5\% move it outward, few of them in the morning. Third, the flagged car is rarely the only one. Thirty minutes after the ride end it has a median of 10 other available MILES cars within 500\,m; only 1.2\% are the last one within 500\,m. Of the flagged cars that did strand, 90.9\% saw another MILES rental start within 500\,m during their first 12 idle hours, so customers came and chose another car. The one exception is BER airport: rentals from there cover a median 19.6\,km and the idle pays for itself. We therefore never offer a rescue at BER (1.4\% of flagged cars) or when the move would leave no available car within 500\,m (1.2\%). At least 94\% of flagged idle hours sit next to three or more other idle MILES cars.
+
+\paragraph{``Why not pay a minimum-wage employee?''}
+Staff choose the best cell, park legally, can refuel and inspect in the same visit, and cannot game a bonus. These are real advantages, and they are why staff keep the long tail. On money and timing, staff lose. A perfectly chained move at minimum wage costs at least \eur{12.1} and recovers rental time worth \eur{1.3}--4.5 (Table~\ref{tab:ab}). Acting at ride end would take about 1{,}220 moves a day, 20.6\% of them between 22:00 and 06:00: 131--160 eight-hour shifts every day, costing \eur{7.3}--19.1M a year for rental time worth \eur{1.3}--4.4M. Stationing an employee at the five busiest stranding cells reaches only 4.8\% of flagged cars (top 20 cells: 13.1\%). Those cars are worth more per move (10.9\,h), but at about one staff-hour per move a station still loses \eur{6.9}--38.8 per car. A user, by contrast, is already making the trip, at ride end, and pays the fare: rides starting within 800\,m of a flagged car cover a median 4.2\,km. That fare is not extra revenue if the user would have ridden anyway; the point is that the transport costs MILES nothing.
+
+\subsection{Annual scenarios}\label{sec:econ}
+
+Table~\ref{tab:econ} combines the measured hours with three assumptions: acceptance, the incremental share $q$, and the margin bounds. It uses 1{,}288 flagged ride ends per day, of which 80.6\% have a MILES customer starting a ride within a 10-minute walk; 5.93--7.76\,h saved per incremental rescue and 1.00\,h per swap; and a credit of $\min(\text{\eur{5}}, R^\ast)$, whose cost to MILES lies between $R(1-m)$ and $R$.
+\begin{equation}
+\text{net per year} = 1{,}288 \times 0.806 \times a \times 365 \times \Bigl(s\rho m\,\bigl(q\,h+(1-q)\cdot 1.0\bigr)-\mathrm{cost}(R)\Bigr).
+\end{equation}
+
+\begin{table}[h]
+\centering\small
+\caption{Annual net contribution in Berlin from user rescues (incremental share $q=75\%$; range over $m\in[0.23,0.79]$, $h\in[5.9,7.8]$\,h and credit-cost bounds), and staff relocation as practised. Acceptance $a$ and $q$ are assumptions. The lower bound is \eur{0} because a destination-priced credit never exceeds $R^\ast$; a flat \eur{5} credit instead gives $-$\eur{270k} to $+$\eur{413k} at 20\% acceptance. \emph{Source: \texttt{ab\_scenarios.py}; inputs measured on June 2024 data or cited.}}
+\label{tab:econ}
+\begin{tabular}{@{}lrrr@{}}
+\toprule
+Scenario & Moves/day & Net per year & $q=50$--100\% (upper end) \\
+\midrule
+B, 5\% acceptance & 52 & \eur{0}--103k & \eur{70k}--137k \\
+B, 10\% acceptance & 104 & \eur{0}--207k & \eur{141k}--275k \\
+B, 20\% acceptance & 208 & \eur{0}--413k & \eur{281k}--550k \\
+A, staff relocation as practised & 186 & $-$\eur{0.8M} to $-$\eur{2.8M} & 58k--71k staff-hours/yr \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+The user programme is small in money: up to about \eur{0.4M} per year at 20\% acceptance. Its value lies elsewhere. It acts at ride end, when the hours are still there, and it shows that late staff relocation does not pay on rental time. If MILES moved its 160--195 staff-hours a day to the long tail, it would stop spending \eur{1.1}--2.9M a year on moves that recover about four car-hours each. Whether those moves serve other purposes, such as compliance or the service area, only MILES can say.
+
+\section{Proposed experiment: two weeks to measure acceptance and incrementality}\label{sec:ab}
+
+The economics hinge on two unmeasured numbers, acceptance and the share of rescuers who would not have rented a car anyway. The next step is to measure them, not to model them further.
 \begin{itemize}
-\item \textbf{Unit.} A flagged opportunity: a ride end in the top 10\% of the stranding score, with positive net value and $P(\text{still there}) \geq 95\%$.
-\item \textbf{Arms.} Randomize each opportunity 50/50 to \emph{offer} (\eur{5} credit, money back if gone) or \emph{holdout} (no offer). Optional extra arms at \eur{3} and \eur{8} estimate the price response.
+\item \textbf{Unit.} A flagged opportunity: a ride end in the top 10\% of the stranding score, with $\Delta V$ above the credit and $P(\text{still there}) \geq 95\%$.
+\item \textbf{Randomisation.} By cell $\times$ day clusters, not by single opportunity. Clusters are assigned 50/50 to \emph{offer} or \emph{holdout}. In offer clusters, users starting a ride within a 10-minute walk see the flagged car with a destination-priced credit of at most \eur{5}, and money back if it is gone. A lower-price arm (\eur{3} cap) estimates the price response.
 \item \textbf{Duration.} Two weeks, so that both weekdays and weekends appear twice.
-\item \textbf{Primary estimand.} Acceptance rate in the offer arm.
-\item \textbf{Secondary estimands.} Intention-to-treat difference in the share of opportunities that strand and in mean idle hours, offer against holdout; net euros per opportunity; refund rate against the predicted 1.2\%.
-\item \textbf{Size.} About 1,490 flagged ride ends per day give roughly 10,000 opportunities per arm in two weeks, before filtering. An illustrative power calculation: at 10\% acceptance, if a completed rescue lowers the stranding probability from 58\% to 20\%, the intention-to-treat difference is 3.8 percentage points, and detecting it at $\alpha = 0.05$ with 80\% power needs about 2,700 opportunities per arm. Clustering by area and day lowers the effective sample size, so standard errors should be clustered by cell and day.
+\item \textbf{Primary estimands.} Acceptance rate, and the incremental share $q$: among rescuers, the share whose account would otherwise not have started a ride from the same cell within the hour, compared against holdout clusters.
+\item \textbf{Secondary estimands.} Intention-to-treat differences, offer against holdout, in the strand rate and idle hours of the flagged car. Also rentals and idle hours of \emph{all} MILES cars in the origin and target cells, which captures swaps and cannibalisation. Net euros per opportunity, and the refund rate against the predicted 1.2\%.
+\item \textbf{Size.} About 1,288 flagged ride ends per day give roughly 9,000 opportunities per arm in two weeks, before filtering. An illustrative power calculation: at 10\% acceptance, if a completed rescue lowers the stranding probability from 57\% to 20\%, the intention-to-treat difference is 3.7 percentage points. Detecting it at $\alpha = 0.05$ with 80\% power needs about 2,800 opportunities per arm before the design effect of clustering, so the cluster count, not the opportunity count, sets the duration.
 \item \textbf{Pre-registration.} Arms, estimands and analysis are fixed before launch. Credits are paid only for completed rescues.
 \end{itemize}
 
 \section{Limitations}\label{sec:limits}
 
 \begin{itemize}
-\item \textbf{Historical data.} All model results come from one summer month in Berlin (June 2024), with a test window of six days. Seasonality is not modelled. The live service (Section~\ref{sec:live}) has not been evaluated against outcomes.
+\item \textbf{Historical data.} All results come from one summer month in Berlin (June 2024), with a test window of six days. Seasonality is not modelled. The out-of-time test of the live model (Section~\ref{sec:oot}) covers one Saturday afternoon and evening in November 2026, with a changed label definition and mostly unseen car models.
 \item \textbf{GBM is more accurate on full Berlin data.} For stranding and the value map, the GBM trained on all data has the higher AUC, and for stranding also the lower ECE. TabPFN's advantages are cold start, data efficiency and calibration at equal data.
 \item \textbf{Cold-start detail.} We report means without seed-level variance. The TabPFN row and the transfer-GBM row of Table~\ref{tab:cold} come from different runs. An earlier, smaller API run in the repository (two cities, two seeds, \texttt{coldstart\_results\_api.csv}) gave lower TabPFN cold-start AUCs (0.55--0.58); Table~\ref{tab:cold} reports the later rerun.
-\item \textbf{Cannibalisation.} Moving a car adds supply to the target cell and can delay the next rental of cars already there. The value map does not model this. The intention-to-treat estimand of the experiment (Section~\ref{sec:ab}) measures the net effect, including this.
+\item \textbf{Cannibalisation and swaps.} A moved car can take a rental from cars already at the target: staff drop-offs and user destinations already hold a median of 2--3 idle MILES cars in the same 400\,m cell. A rescuer who would have rented another car anyway adds only 0.5--1.0\,h. Neither effect is identifiable from scraped data; the cell-level estimands of Section~\ref{sec:ab} measure them.
+\item \textbf{Observational staff comparison.} The 4.19\,h saved per staff move compares relocated cars with cars that stayed in the same 1\,km cell after the same elapsed idle. MILES chooses which cars to move, so selection bias can go either way, and relocations may serve purposes other than rental time.
+\item \textbf{Euro bounds.} $\rho$ is the fleet-wide average revenue per car-hour, not a Berlin figure. The margin $m$ is bounded from the audited accounts, not measured. Staff access time, the road factor and acceptance are labelled assumptions.
 \item \textbf{Label.} $\mathit{idle\_h}$ measures time to the next status change of any kind, not strictly to the next rental.
-\item \textbf{No user data.} The models cannot personalise. Who is near a car, and whether they would accept, is unknown until the experiment.
+\item \textbf{No user data.} The models cannot personalise. Who accepts is unknown until the experiment.
 % 7.3 km median, ~75% beyond 5 km: miles-ops/analysis/rescue_stranded_validation.md
-\item \textbf{Stranded cars are peripheral.} The median stranded car is 7.3\,km from the centre and about 75\% are beyond 5\,km. A short walk-up rescue is realistic only for the inner-city share; for the rest, the operator console, which targets staff trips a day earlier, carries more volume.
-\item \textbf{Assumed economics.} The value of a rescue (\eur{17}--28), the staff-trip cost (\eur{20}) and the acceptance rates are assumptions.
-\item \textbf{Relocation baseline.} The 180 trips per day and the 24.6\,h delay are inferred heuristically from the public record of status changes (see the repository), not from operator logs.
+\item \textbf{Stranded cars are peripheral.} The median stranded car is 7.3\,km from the centre and about 75\% are beyond 5\,km. Cells where cars re-rent quickly are a median 4.5\,km away, so a short dedicated walk-and-park rarely reaches demand. The mechanism that reaches most flagged cars is a user taking the car where they are going anyway.
+\item \textbf{Legal parking.} Users, unlike staff, may leave cars in restricted spots. Targets must be limited to legal-parking cells. MILES' audited report calls public parking fees a material variable cost in some cities. It states that the Berlin prosecutor's investigation into its parking-fee accounting ended in December 2025 with a fine ``in the low double-digit millions'' (``niedrige zweistellige Millionenh\"ohe'')~\citep{miles2024annual}.
+\item \textbf{Relocation baseline.} Relocations are runs of the public status \texttt{IN\_RELOCATION\_TRIP} (186 per day, median 24.1\,h after the last ride), not operator logs.
 \end{itemize}
+
+\section{Conclusion}
+
+Stranding in free-floating car sharing can be predicted when a ride ends. With a 10k-row context and no tuning, TabPFN comes close to a GBM trained on 20 times more data, is better calibrated at equal data, and transfers to a new city where GBMs stay flat. Turning predictions into decisions needs a value for each move. Valuing a car by the expected hours until its next rental gives a simple rule with each term tied to a model: offer a credit up to the rescue value $R^\ast$, priced by where the user is going. On June 2024 data, MILES' staff relocations come a day late and recover about four car-hours each, less than they cost. A user who is leaving from near a flagged car anyway reaches 81\% of flagged cars at ride end and saves about six to eight hours per rescue. The money at stake is modest, up to about \eur{0.4M} a year in Berlin at 20\% acceptance. It rests on two numbers that no model can supply: how many users accept, and how many of them would not have rented anyway. The proposed two-week experiment measures both. The TabPFN regression of the full idle-time distribution, which feeds the value terms directly, is pending and will replace the empirical cell map.
 
 \section{Reproducibility and ethics}
 
