@@ -1,6 +1,6 @@
 """E1 - the VALUE term: TabPFN regression of the time until the next rental after a ride end (Berlin).
 
-Target: idle_h = hours from a ride end until that car's next rental starts, right-censored (capped) at 48 h.
+Target: idle_h = hours from a ride end until that car's next status change (~ next rental), right-censored (capped) at 48 h.
 Split (time-based, no leakage): context/train = ride ends June 3-16 2024, test = ride ends June 17-22 (data cut June 23 00:00).
 Features (all known at the ride-end moment):
   base   = the live stranding classifier's 11 raw features (hour, dow, charge, discounted, damage_count, size_code, electric,
@@ -339,6 +339,9 @@ for name, c in (("TabPFN", TAB), ("GBM", GBM_C)):
 f = cv[cv.n > 10000].iloc[0]
 ax[0].axhline(f.CRPS_approx_h, color=GBMF, ls="--", lw=1, label=f"GBM full ({int(f.n / 1000)}k rows)")
 ax[1].axhline(f["AUC_P>12h"], color=GBMF, ls="--", lw=1, label=f"GBM full ({int(f.n / 1000)}k rows)")
+ft = res.set_index("model").loc[FULL + " tuned"]
+ax[0].axhline(ft.CRPS_approx_h, color=GBMF, ls=":", lw=1.4, label=f"GBM full, tuned ({len(train) // 1000}k rows)")
+ax[1].axhline(ft["AUC_P>12h"], color=GBMF, ls=":", lw=1.4, label=f"GBM full, tuned ({len(train) // 1000}k rows)")
 for x in ax:
     x.set_xscale("log"); x.set_xlabel("training rows (Berlin ride ends June 3-16)")
 ax[0].set_ylabel("CRPS, hours (lower is better)"); ax[1].set_ylabel("AUC of derived P(idle > 12 h)")
@@ -349,7 +352,7 @@ fig.tight_layout(); fig.savefig(os.path.join(R, "value_e1_budget.png"), dpi=160)
 
 fig, ax = plt.subplots(figsize=(4.8, 4.4))
 ax.plot([0, 1], [0, 1], color=MUTED, lw=1, ls=":")
-for name, c in (("TabPFN 10k", TAB), ("GBM 10k", GBM_C), (f"GBM full ({len(train) // 1000}k)", GBMF)):
+for name, c in (("TabPFN 10k", TAB), ("GBM 10k", GBM_C), (FULL + " tuned", GBMF)):
     s = cov[cov.model == name]
     ax.plot(s.q, s.frac_below, "o-", ms=3, color=c, label=name)
 ax.set_xlabel("nominal quantile level"); ax.set_ylabel("share of test ride ends below the predicted quantile")
@@ -360,7 +363,8 @@ plt.close(fig)
 summary = {"split": "context/train ride ends 2024-06-03..16, test 2024-06-17..22 (Berlin)", "cap_h": CAP, "test_n": int(len(test)),
            "test_week_n": int(len(test_all)), "train_n": int(len(train)), "quantiles": QS.tolist(),
            "censored_share_test": float((test.idle_h >= CAP).mean()), "api_calls": credits_log,
-           "credits_used_this_run": (usage() - u_start) if not a.no_api else 0,
+           "account_credits_delta_during_run": (usage() - u_start) if not a.no_api else None,
+           "credits_note": "account-wide delta: includes the live service and other experiments running at the same time",
            "client": "tabpfn-client " + __import__("importlib.metadata").metadata.version("tabpfn-client")}
 json.dump(summary, open(os.path.join(R, "value_e1_summary.json"), "w"), indent=1)
 print(json.dumps(summary, indent=1))

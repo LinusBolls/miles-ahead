@@ -75,6 +75,44 @@ GBM full (210k),0.8,0.78275
 GBM full (210k),0.85,0.83485
 GBM full (210k),0.9,0.88655
 GBM full (210k),0.95,0.9373
+GBM 10k tuned,0.05,0.06905
+GBM 10k tuned,0.1,0.1261
+GBM 10k tuned,0.15,0.1797
+GBM 10k tuned,0.2,0.2301
+GBM 10k tuned,0.25,0.27475
+GBM 10k tuned,0.3,0.31685
+GBM 10k tuned,0.35,0.3608
+GBM 10k tuned,0.4,0.40755
+GBM 10k tuned,0.45,0.4546
+GBM 10k tuned,0.5,0.50015
+GBM 10k tuned,0.55,0.54905
+GBM 10k tuned,0.6,0.59355
+GBM 10k tuned,0.65,0.63495
+GBM 10k tuned,0.7,0.67555
+GBM 10k tuned,0.75,0.72035
+GBM 10k tuned,0.8,0.76765
+GBM 10k tuned,0.85,0.8159
+GBM 10k tuned,0.9,0.86435
+GBM 10k tuned,0.95,0.91855
+GBM full (210k) tuned,0.05,0.0434
+GBM full (210k) tuned,0.1,0.09595
+GBM full (210k) tuned,0.15,0.1457
+GBM full (210k) tuned,0.2,0.1984
+GBM full (210k) tuned,0.25,0.24705
+GBM full (210k) tuned,0.3,0.2942
+GBM full (210k) tuned,0.35,0.3445
+GBM full (210k) tuned,0.4,0.3894
+GBM full (210k) tuned,0.45,0.4355
+GBM full (210k) tuned,0.5,0.4829
+GBM full (210k) tuned,0.55,0.5301
+GBM full (210k) tuned,0.6,0.5809
+GBM full (210k) tuned,0.65,0.6291
+GBM full (210k) tuned,0.7,0.68055
+GBM full (210k) tuned,0.75,0.7295
+GBM full (210k) tuned,0.8,0.77985
+GBM full (210k) tuned,0.85,0.8293
+GBM full (210k) tuned,0.9,0.88125
+GBM full (210k) tuned,0.95,0.9308
 GBM 10k +demand,0.05,0.0758
 GBM 10k +demand,0.1,0.1303
 GBM 10k +demand,0.15,0.1823
@@ -113,3 +151,41 @@ GBM full (210k) +demand,0.8,0.7897
 GBM full (210k) +demand,0.85,0.83945
 GBM full (210k) +demand,0.9,0.88775
 GBM full (210k) +demand,0.95,0.93655
+GBM 10k tuned +demand,0.05,0.07675
+GBM 10k tuned +demand,0.1,0.1308
+GBM 10k tuned +demand,0.15,0.1932
+GBM 10k tuned +demand,0.2,0.24005
+GBM 10k tuned +demand,0.25,0.2837
+GBM 10k tuned +demand,0.3,0.33045
+GBM 10k tuned +demand,0.35,0.3787
+GBM 10k tuned +demand,0.4,0.42325
+GBM 10k tuned +demand,0.45,0.46675
+GBM 10k tuned +demand,0.5,0.50865
+GBM 10k tuned +demand,0.55,0.55025
+GBM 10k tuned +demand,0.6,0.59545
+GBM 10k tuned +demand,0.65,0.64165
+GBM 10k tuned +demand,0.7,0.68295
+GBM 10k tuned +demand,0.75,0.72415
+GBM 10k tuned +demand,0.8,0.76785
+GBM 10k tuned +demand,0.85,0.8138
+GBM 10k tuned +demand,0.9,0.85465
+GBM 10k tuned +demand,0.95,0.9085
+GBM full (210k) tuned +demand,0.05,0.04755
+GBM full (210k) tuned +demand,0.1,0.10475
+GBM full (210k) tuned +demand,0.15,0.15265
+GBM full (210k) tuned +demand,0.2,0.2022
+GBM full (210k) tuned +demand,0.25,0.25175
+GBM full (210k) tuned +demand,0.3,0.3028
+GBM full (210k) tuned +demand,0.35,0.35105
+GBM full (210k) tuned +demand,0.4,0.39755
+GBM full (210k) tuned +demand,0.45,0.4445
+GBM full (210k) tuned +demand,0.5,0.48975
+GBM full (210k) tuned +demand,0.55,0.53645
+GBM full (210k) tuned +demand,0.6,0.5854
+GBM full (210k) tuned +demand,0.65,0.63315
+GBM full (210k) tuned +demand,0.7,0.68355
+GBM full (210k) tuned +demand,0.75,0.73175
+GBM full (210k) tuned +demand,0.8,0.78255
+GBM full (210k) tuned +demand,0.85,0.83395
+GBM full (210k) tuned +demand,0.9,0.88285
+GBM full (210k) tuned +demand,0.95,0.9318
