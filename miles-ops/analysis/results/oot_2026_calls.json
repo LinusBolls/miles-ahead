@@ -1,0 +1,45 @@
+{
+ "split": "2026-11-21 15:42:56.835420+00:00",
+ "calls": [
+  {
+   "name": "tabpfn_june",
+   "context_rows": 10000,
+   "context_pos_rate": 0.1789,
+   "test_rows": 2563,
+   "credits": 10000,
+   "seconds": 4.2
+  },
+  {
+   "name": "tabpfn_june+2026",
+   "context_rows": 11281,
+   "context_pos_rate": 0.167,
+   "test_rows": 1282,
+   "credits": 20000,
+   "seconds": 3.7
+  },
+  {
+   "name": "tabpfn_2026only",
+   "context_rows": 1281,
+   "context_pos_rate": 0.0742,
+   "test_rows": 1282,
+   "credits": 10000,
+   "seconds": 2.7
+  },
+  {
+   "name": "tabpfn_june5k+2026",
+   "context_rows": 6281,
+   "context_pos_rate": 0.1552,
+   "test_rows": 1282,
+   "credits": 10000,
+   "seconds": 4.0
+  },
+  {
+   "name": "tabpfn_june2k+2026",
+   "context_rows": 3281,
+   "context_pos_rate": 0.1378,
+   "test_rows": 1282,
+   "credits": 10000,
+   "seconds": 3.0
+  }
+ ]
+}
